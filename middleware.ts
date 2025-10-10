@@ -11,6 +11,8 @@ export async function middleware(req: NextRequest) {
     pathname === "/signin" ||
     pathname === "/signup" ||
     pathname.startsWith("/api/register") ||
+    pathname.startsWith("/api/onboarding") ||
+    pathname === "/onboarding" ||
     pathname.startsWith("/_next") ||
     pathname === "/favicon.ico" ||
     pathname.startsWith("/images") ||
@@ -28,12 +30,15 @@ export async function middleware(req: NextRequest) {
     return NextResponse.redirect(signInUrl)
   }
 
+  // Note: Onboarding check will be handled in the app layout/page components
+  // since middleware runs in Edge Runtime and can't access database
+
   return NextResponse.next()
 }
 
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|api/auth|signin|signup|api/register|images|public|assets).*)",
+    "/((?!_next/static|_next/image|favicon.ico|api/auth|signin|signup|api/register|api/onboarding|onboarding|images|public|assets).*)",
   ],
 }
 

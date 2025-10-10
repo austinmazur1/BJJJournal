@@ -1,27 +1,57 @@
 import { NextResponse } from "next/server"
 import { createUser, findUserByEmail, hashPassword } from "@/lib/userStore"
+import { handleApiError } from "@/lib/errorHandler"
+import { ValidationError, ConflictError } from "@/lib/errors"
 
 export async function POST(req: Request) {
   try {
-    const body = await req.json()
+    let body
+    try {
+      body = await req.json()
+    } catch {
+      throw new ValidationError('Invalid JSON in request body')
+    }
+
     const email = String(body.email ?? "").toLowerCase()
     const password = String(body.password ?? "")
     const name = body.name ? String(body.name) : undefined
 
-    if (!email || !password) {
-      return NextResponse.json({ error: "Email and password required" }, { status: 400 })
+    // Validate required fields
+    const missingFields = []
+    if (!email) missingFields.push('email')
+    if (!password) missingFields.push('password')
+
+    if (missingFields.length > 0) {
+      throw new ValidationError('Missing required fields', { fields: missingFields })
     }
 
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(email)) {
+      throw new ValidationError('Invalid email format')
+    }
+
+    // Validate password strength
+    if (password.length < 8) {
+      throw new ValidationError('Password must be at least 8 characters long')
+    }
+
+    // Check if user already exists
     if (await findUserByEmail(email)) {
-      return NextResponse.json({ error: "User already exists" }, { status: 409 })
+      throw new ConflictError("User already exists")
     }
     
+    // Hash password and create user
     const passwordHash = await hashPassword(password)
-    const user = await createUser({ email, name, passwordHash })
-    return NextResponse.json({ id: user.id, email: user.email, name: user.name }, { status: 201 })
-  } catch (e) {
-    console.error("Registration error:", e)
-    return NextResponse.json({ error: e instanceof Error ? e.message : "Invalid request" }, { status: 400 })
+    const user = await createUser({ email, name, passwordHash, onboardingCompleted: false })
+    
+    return NextResponse.json({ 
+      id: user.id, 
+      email: user.email, 
+      name: user.name 
+    }, { status: 201 })
+  } catch (error) {
+    return handleApiError(error)
   }
 }
 

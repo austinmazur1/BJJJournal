@@ -56,6 +56,17 @@ export const authOptions: NextAuthOptions = {
         token.id = (user as { id?: string }).id ?? token.sub
         token.email = user.email ?? token.email
         token.name = user.name ?? token.name
+        // Get onboarding status from database
+        if (token.id) {
+          try {
+            const { findUserById } = await import("@/lib/userStore")
+            const dbUser = await findUserById(token.id)
+            token.onboardingCompleted = dbUser?.onboardingCompleted ?? false
+          } catch (error) {
+            console.error("Error fetching user onboarding status:", error)
+            token.onboardingCompleted = false
+          }
+        }
       }
       if (account && profile) {
         token.provider = account.provider
@@ -69,6 +80,7 @@ export const authOptions: NextAuthOptions = {
         session.user.email = token.email as string | null
         session.user.name = token.name as string | null
         session.user.image = (token as { picture?: string }).picture ?? null
+        session.user.onboardingCompleted = (token as { onboardingCompleted?: boolean }).onboardingCompleted ?? false
       }
       return session
     },

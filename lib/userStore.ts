@@ -1,67 +1,98 @@
-import crypto from "crypto"
+import bcrypt from "bcryptjs"
 import { connectMongoose } from "@/lib/db"
-import { UserModel } from "@/lib/models/User"
+import { UserModel, UserBeltLevel, BeltStripe } from "@/lib/models/User"
 import type { UserDocument } from "@/lib/models/User"
+import { ConflictError, NotFoundError, ValidationError } from "@/lib/errors"
 
 export type StoredUser = {
   id: string
   email: string
   name?: string
-  passwordHash?: string // format: algorithm:salt:hash
+  passwordHash?: string
   image?: string | null
+  onboardingCompleted: boolean
+  beltLevel?: UserBeltLevel
+  beltStripe?: BeltStripe
+  trainingLocation?: string
+}
+
+export function mapUserDocumentToStoredUser(doc: UserDocument): StoredUser { 
+  return {
+    id: doc._id.toString(),
+    email: doc.email,
+    name: doc.name,
+    passwordHash: doc.passwordHash ?? undefined,
+    image: doc.image ?? null,
+    onboardingCompleted: doc.onboardingCompleted,
+    beltLevel: doc.beltLevel,
+    beltStripe: doc.beltStripe,
+    trainingLocation: doc.trainingLocation,
+  }
 }
 
 export async function findUserByEmail(email: string): Promise<StoredUser | undefined> {
   await connectMongoose()
   const doc = await UserModel.findOne({ email: email.toLowerCase() }).lean<UserDocument | null>() 
   if (!doc) return undefined
-  return {
-    id: doc._id,
-    email: doc.email,
-    name: doc.name,
-    passwordHash: doc.passwordHash ?? undefined,
-    image: doc.image ?? null,
-  }
+  return mapUserDocumentToStoredUser(doc)
 }
 
 export async function createUser(user: Omit<StoredUser, "id">): Promise<StoredUser> {
   await connectMongoose()
   const existing = await UserModel.findOne({ email: user.email.toLowerCase() }).lean()
   if (existing) {
-    throw new Error("User already exists")
+    throw new ConflictError("User already exists")
   }
-  const id = crypto.randomUUID()
   const created = await UserModel.create({
-    _id: id,
     email: user.email.toLowerCase(),
     name: user.name,
     image: user.image ?? null,
     passwordHash: user.passwordHash ?? null,
   })
-  return {
-    id: created._id,
-    email: created.email,
-    name: created.name,
-    passwordHash: created.passwordHash ?? undefined,
-    image: created.image ?? null,
-  }
+  return mapUserDocumentToStoredUser(created)
 }
 
 export async function hashPassword(password: string): Promise<string> {
-  const salt = crypto.randomBytes(16).toString("hex")
-  const derivedKey = await new Promise<Buffer>((resolve, reject) => {
-    crypto.scrypt(password, salt, 64, (err, dk) => (err ? reject(err) : resolve(dk as Buffer)))
-  })
-  return `scrypt:${salt}:${derivedKey.toString("hex")}`
+  const saltRounds = 12
+  return await bcrypt.hash(password, saltRounds)
 }
 
 export async function verifyPassword(password: string, passwordHash?: string): Promise<boolean> {
   if (!passwordHash) return false
-  const [algorithm, salt, storedHex] = passwordHash.split(":")
-  if (algorithm !== "scrypt" || !salt || !storedHex) return false
-  const derivedKey = await new Promise<Buffer>((resolve, reject) => {
-    crypto.scrypt(password, salt, 64, (err, dk) => (err ? reject(err) : resolve(dk as Buffer)))
-  })
-  return crypto.timingSafeEqual(Buffer.from(storedHex, "hex"), derivedKey)
+  return await bcrypt.compare(password, passwordHash)
+}
+
+export async function findUserById(id: string): Promise<StoredUser | undefined> {
+  await connectMongoose()
+  const doc = await UserModel.findById(id).lean<UserDocument | null>()
+  if (!doc) return undefined
+  return mapUserDocumentToStoredUser(doc)
+}
+
+export async function completeOnboarding(
+  userId: string,
+  data: {
+    beltLevel: UserBeltLevel
+    beltStripe: BeltStripe
+    trainingLocation: string
+  }
+): Promise<StoredUser> {
+  await connectMongoose()
+  const updated = await UserModel.findByIdAndUpdate(
+    userId,
+    {
+      beltLevel: data.beltLevel,
+      beltStripe: data.beltStripe,
+      trainingLocation: data.trainingLocation,
+      onboardingCompleted: true,
+    },
+    { new: true }
+  ).lean<UserDocument>()
+
+  if (!updated) {
+    throw new NotFoundError("User")
+  }
+
+  return mapUserDocumentToStoredUser(updated)
 }
 
