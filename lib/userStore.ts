@@ -96,3 +96,33 @@ export async function completeOnboarding(
   return mapUserDocumentToStoredUser(updated)
 }
 
+export async function updateProfile(
+  userId: string,
+  data: {
+    beltLevel?: UserBeltLevel
+    beltStripe?: BeltStripe
+    trainingLocation?: string
+    name?: string
+  }
+): Promise<StoredUser> {
+  await connectMongoose()
+  
+  const updateData: Partial<UserDocument> = {}
+  if (data.beltLevel !== undefined) updateData.beltLevel = data.beltLevel
+  if (data.beltStripe !== undefined) updateData.beltStripe = data.beltStripe
+  if (data.trainingLocation !== undefined) updateData.trainingLocation = data.trainingLocation
+  if (data.name !== undefined) updateData.name = data.name
+
+  const updated = await UserModel.findByIdAndUpdate(
+    userId,
+    updateData,
+    { new: true }
+  ).lean<UserDocument>()
+
+  if (!updated) {
+    throw new NotFoundError("User")
+  }
+
+  return mapUserDocumentToStoredUser(updated)
+}
+
