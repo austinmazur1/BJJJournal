@@ -10,25 +10,30 @@ import { revalidatePath } from "next/cache";
 import { NotFoundError } from "@/lib/errors";
 import { JournalEntryValidation, JournalEntryUpdateValidation } from "@/lib/validations/journalEntryValidation";
 import { JournalEntryGiNoGi } from "@/lib/models/JournalEntry";
+import { formatDuration } from "@/lib/utils/time";
+import { SerializedJournalEntry } from "@/types/journalEntries";
 
-export type SerializedJournalEntry = {
-  _id: string;
-  userId: string;
-  date: string;
-  duration: number;
-  type: string;
-  giNoGi: string;
-  area: string;
-  feeling?: string;
-  questions?: string;
-  location: string;
-  professor?: string;
-  depthNotes: string;
-  otherNotes?: string;
-  workOn?: string;
-  partners: string[];
-  createdAt: string;
-  updatedAt: string;
+
+const serializeJournalEntry = (journalEntry: any): SerializedJournalEntry => {
+  return {
+    _id: journalEntry._id.toString(),
+    userId: journalEntry.userId.toString(),
+    date: journalEntry.date.toISOString(),
+    duration: journalEntry.duration,
+    type: journalEntry.type,
+    giNoGi: journalEntry.giNoGi,
+    area: journalEntry.area,
+    feeling: journalEntry.feeling,
+    questions: journalEntry.questions,
+    location: journalEntry.location,
+    professor: journalEntry.professor,
+    depthNotes: journalEntry.depthNotes,
+    otherNotes: journalEntry.otherNotes,
+    workOn: journalEntry.workOn,
+    partners: journalEntry.partners || [],
+    createdAt: journalEntry.createdAt?.toISOString() || new Date().toISOString(),
+    updatedAt: journalEntry.updatedAt?.toISOString() || new Date().toISOString(),
+  };
 };
 
 export const deleteJournalEntry = async (journalId: string) => {
@@ -65,27 +70,7 @@ export const getJournalEntry = async (
     throw new NotFoundError("Journal");
   }
 
-  return {
-    _id: journalEntry._id.toString(),
-    userId: journalEntry.userId.toString(),
-    date: journalEntry.date.toISOString(),
-    duration: journalEntry.duration,
-    type: journalEntry.type,
-    giNoGi: journalEntry.giNoGi,
-    area: journalEntry.area,
-    feeling: journalEntry.feeling,
-    questions: journalEntry.questions,
-    location: journalEntry.location,
-    professor: journalEntry.professor,
-    depthNotes: journalEntry.depthNotes,
-    otherNotes: journalEntry.otherNotes,
-    workOn: journalEntry.workOn,
-    partners: journalEntry.partners || [],
-    createdAt:
-      journalEntry.createdAt?.toISOString() || new Date().toISOString(),
-    updatedAt:
-      journalEntry.updatedAt?.toISOString() || new Date().toISOString(),
-  };
+  return serializeJournalEntry(journalEntry);
 };
 
 export const getJournalEntries = async (
@@ -96,25 +81,7 @@ export const getJournalEntries = async (
     .sort({ date: -1 })
     .lean();
 
-  return journalEntries.map((entry: any) => ({
-    _id: entry._id.toString(),
-    userId: entry.userId.toString(),
-    date: entry.date.toISOString(),
-    duration: entry.duration,
-    type: entry.type,
-    giNoGi: entry.giNoGi,
-    area: entry.area,
-    feeling: entry.feeling,
-    questions: entry.questions,
-    location: entry.location,
-    professor: entry.professor,
-    depthNotes: entry.depthNotes,
-    otherNotes: entry.otherNotes,
-    workOn: entry.workOn,
-    partners: entry.partners || [],
-    createdAt: entry.createdAt?.toISOString() || new Date().toISOString(),
-    updatedAt: entry.updatedAt?.toISOString() || new Date().toISOString(),
-  }));
+  return journalEntries.map((entry: any) => serializeJournalEntry(entry));
 };
 
 export const getRecentJournalEntries = async (
@@ -127,25 +94,7 @@ export const getRecentJournalEntries = async (
     .limit(limit)
     .lean();
 
-  return journalEntries.map((entry: any) => ({
-    _id: entry._id.toString(),
-    userId: entry.userId.toString(),
-    date: entry.date.toISOString(),
-    duration: entry.duration,
-    type: entry.type,
-    giNoGi: entry.giNoGi,
-    area: entry.area,
-    feeling: entry.feeling,
-    questions: entry.questions,
-    location: entry.location,
-    professor: entry.professor,
-    depthNotes: entry.depthNotes,
-    otherNotes: entry.otherNotes,
-    workOn: entry.workOn,
-    partners: entry.partners || [],
-    createdAt: entry.createdAt?.toISOString() || new Date().toISOString(),
-    updatedAt: entry.updatedAt?.toISOString() || new Date().toISOString(),
-  }));
+  return journalEntries.map((entry: any) => serializeJournalEntry(entry));
 };
 
 export async function createJournalEntryAction(formData: JournalEntryValidation) {
@@ -201,14 +150,6 @@ export async function getStatistics(user: StoredUser) {
     .lean();
 
   const totalTimeTrained = journalEntries.map((data) => data.duration).reduce((acc, curr) => acc + curr, 0);  
-  function formatDuration(minutes: number): string {
-    const h = Math.floor(minutes / 60);
-    const m = minutes % 60;
-    let str = "";
-    if (h > 0) str += `${h}h `;
-    if (m > 0 || h === 0) str += `${m}m`;
-    return str.trim();
-  }
 
   const totalTimeTrainedReadable = formatDuration(totalTimeTrained);
   const totalSessions = journalEntries.length;
@@ -248,15 +189,6 @@ export async function getComprehensiveStatistics(user: StoredUser): Promise<Comp
   const journalEntries = await JournalEntryModel.find({ userId: user.id })
     .sort({ date: -1 })
     .lean()
-
-  function formatDuration(minutes: number): string {
-    const h = Math.floor(minutes / 60)
-    const m = minutes % 60
-    let str = ""
-    if (h > 0) str += `${h}h `
-    if (m > 0 || h === 0) str += `${m}m`
-    return str.trim()
-  }
 
   const totalSessions = journalEntries.length
   const totalTimeMinutes = journalEntries.reduce((acc, curr) => acc + (curr.duration || 0), 0)

@@ -1,10 +1,12 @@
 "use client"
 
 import Link from "next/link"
-import { SerializedJournalEntry } from "@/lib/journalStore"
+import { SerializedJournalEntry } from "@/types/journalEntries"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Calendar, Clock, MapPin, User, Users } from "lucide-react"
+import { getFeelingEmoji, formatJournalGridDate, truncateNotes, getGiNoGiGradientClass, getJournalEntryTypeBadgeColor } from "@/lib/utils/journalElementsStyling"
+import { JournalEntryGiNoGi, JournalEntryType } from "@/lib/models/JournalEntry"
 
 interface JournalEntriesGridProps {
   entries: SerializedJournalEntry[]
@@ -42,46 +44,14 @@ export function JournalEntriesGrid({ entries }: JournalEntriesGridProps) {
 }
 
 function JournalEntryCard({ entry }: { entry: SerializedJournalEntry }) {
-  const gradientClass = entry.giNoGi === "Gi" 
-    ? "bg-gradient-to-br from-blue-50 to-indigo-50 hover:from-blue-100 hover:to-indigo-100" 
-    : "bg-gradient-to-br from-purple-50 to-pink-50 hover:from-purple-100 hover:to-pink-100"
-  
-  const typeBadgeColor = entry.type === "Class" 
-    ? "bg-green-100 text-green-800 border-green-200" 
-    : entry.type === "Open Mat"
-    ? "bg-orange-100 text-orange-800 border-orange-200"
-    : "bg-gray-100 text-gray-800 border-gray-200"
-
-  const getFeelingEmoji = (feeling?: string) => {
-    switch (feeling) {
-      case "Energized": return "💪"
-      case "Tired": return "😴"
-      case "Focused": return "🎯"
-      case "Sore": return "🤕"
-      default: return ""
-    }
-  }
-
-  // Format date nicely. TODO: Move to a separate file
-  const formattedDate = new Date(entry.date).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric"
-  })
-
-  // Truncate depth notes for preview. TODO: Move to a separate file
-  const truncatedNotes = entry.depthNotes.length > 120 
-    ? entry.depthNotes.substring(0, 120) + "..." 
-    : entry.depthNotes
-
   return (
     <Link href={`/journal/${entry._id}`} className="group">
-      <Card className={`${gradientClass} border-2 transition-all duration-300 hover:shadow-lg hover:-translate-y-1 cursor-pointer h-full`}>
+      <Card className={`${getGiNoGiGradientClass(entry.giNoGi as JournalEntryGiNoGi)} border-2 transition-all duration-300 hover:shadow-lg hover:-translate-y-1 cursor-pointer h-full`}>
         <CardHeader className="pb-3">
           <div className="flex items-start justify-between gap-2 mb-3">
             <div className="flex items-center gap-2 text-sm text-gray-700">
               <Calendar className="h-4 w-4" />
-              <span className="font-medium">{formattedDate}</span>
+              <span className="font-medium">{formatJournalGridDate(new Date(entry.date))}</span>
             </div>
             <Badge 
               variant="outline" 
@@ -95,7 +65,7 @@ function JournalEntryCard({ entry }: { entry: SerializedJournalEntry }) {
           </div>
 
           <div className="flex flex-wrap gap-2 mb-3">
-            <Badge variant="outline" className={typeBadgeColor}>
+            <Badge variant="outline" className={getJournalEntryTypeBadgeColor(entry.type as JournalEntryType)}>
               {entry.type}
             </Badge>
             <Badge variant="outline" className="bg-amber-100 text-amber-800 border-amber-200">
@@ -117,7 +87,7 @@ function JournalEntryCard({ entry }: { entry: SerializedJournalEntry }) {
         <CardContent className="space-y-3">
           <div className="bg-white/60 backdrop-blur-sm rounded-lg p-3 border border-gray-200/50">
             <p className="text-sm text-gray-700 line-clamp-3 leading-relaxed">
-              {truncatedNotes}
+              {truncateNotes(entry.depthNotes)}
             </p>
           </div>
 

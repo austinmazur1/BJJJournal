@@ -7,8 +7,7 @@ import {
   JournalEntryArea,
   JournalEntryFeeling,
 } from "@/lib/models/JournalEntry";
-import { useFieldArray, useForm } from "react-hook-form";
-import { handleApiError } from "@/lib/errorHandler";
+import { useFieldArray, useForm, Controller } from "react-hook-form";
 import { JournalEntryValidation, JournalEntryUpdateValidation } from "@/lib/validations/journalEntryValidation";
 import {
   FieldGroup,
@@ -16,7 +15,8 @@ import {
   FieldLabel,
   FieldSet,
   FieldTitle,
-} from "@/components/ui/field";
+  FieldError,
+  } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
@@ -37,7 +37,10 @@ import {
 import { CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 import { Badge } from "../ui/badge";
-import { SerializedJournalEntry } from "@/lib/journalStore";
+import { SerializedJournalEntry } from "@/types/journalEntries";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { journalEntryValidation } from "@/lib/validations/journalEntryValidation";
+import { z } from "zod";
 
 interface JournalFormCreateProps {
   serverAction: (data: JournalEntryValidation) => Promise<void>;
@@ -55,10 +58,13 @@ type JournalFormData = Omit<JournalEntryValidation, "partners"> & {
   partners: { name: string }[];
 };
 
+const journalEntryFormValidation = journalEntryValidation.extend({
+  partners: z.array(z.object({ name: z.string().min(1) })),
+});
+
 export function JournalForm({ serverAction, journalEntry }: JournalFormProps) {
   const [isPending, startTransition] = useTransition();
   const [openDatePicker, setOpenDatePicker] = useState(false);
-  const [, setError] = useState<string | null>(null);
   
   // Transform journal entry data for form population
   const getDefaultValues = (): JournalFormData => {
@@ -107,6 +113,9 @@ export function JournalForm({ serverAction, journalEntry }: JournalFormProps) {
     control,
   } = useForm<JournalFormData>({
     defaultValues: getDefaultValues(),
+    resolver: zodResolver(journalEntryFormValidation),
+    mode: "onSubmit",
+    reValidateMode: "onChange",
   });
   const { fields, append, remove } = useFieldArray({
     control: control,
@@ -140,9 +149,6 @@ export function JournalForm({ serverAction, journalEntry }: JournalFormProps) {
         
       } catch (err) {
         console.error("Journal entry submission error:", err);
-        setError(
-          err instanceof Error ? err.message : "Failed to save journal entry"
-        );
       }
     });
   };
@@ -150,7 +156,7 @@ export function JournalForm({ serverAction, journalEntry }: JournalFormProps) {
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200">
       <form
-        onSubmit={handleSubmit(onSubmit, handleApiError)}
+        onSubmit={handleSubmit(onSubmit)}
         className="p-6 space-y-8"
       >
         <FieldGroup>
@@ -160,171 +166,210 @@ export function JournalForm({ serverAction, journalEntry }: JournalFormProps) {
             </FieldTitle>
 
             <FieldSet className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-              <Field>
+              <Field data-invalid={!!errors.date}>
                 <FieldLabel htmlFor="date">Date *</FieldLabel>
-                <Popover open={openDatePicker} onOpenChange={setOpenDatePicker}>
-                  <PopoverTrigger asChild>
-                    <Button id="date-picker" variant={"outline"} type="button">
-                      <div className="flex flex-row justify-between items-center gap-2 w-full">
-                        <span className="text-sm font-medium">
-                          {format(watch("date"), "MM/dd/yyyy")}
-                        </span>
-                        <CalendarIcon className="size-3.5" />
-                      </div>
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent
-                    className="w-auto overflow-hidden p-0"
-                    align="start"
-                  >
-                    <Calendar
-                      mode="single"
-                      selected={watch("date")}
-                      captionLayout="dropdown"
-                      onSelect={(date) => {
-                        if (date) {
-                          setValue("date", date);
-                        }
-                        setOpenDatePicker(false);
-                      }}
-                    />
-                  </PopoverContent>
-                </Popover>
+                <Controller
+                  name="date"
+                  control={control}
+                  render={({ field }) => (
+                    <Popover open={openDatePicker} onOpenChange={setOpenDatePicker}>
+                      <PopoverTrigger asChild>
+                        <Button id="date-picker" variant={"outline"} type="button">
+                          <div className="flex flex-row justify-between items-center gap-2 w-full">
+                            <span className="text-sm font-medium">
+                              {format(field.value, "MM/dd/yyyy")}
+                            </span>
+                            <CalendarIcon className="size-3.5" />
+                          </div>
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent
+                        className="w-auto overflow-hidden p-0"
+                        align="start"
+                      >
+                        <Calendar
+                          mode="single"
+                          selected={field.value}
+                          captionLayout="dropdown"
+                          onSelect={(date) => {
+                            if (date) {
+                              field.onChange(date);
+                              setOpenDatePicker(false);
+                            }
+                          }}
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  )}
+                />
+                {errors.date && <FieldError errors={[errors.date]} />}
               </Field>
 
-              <Field>
+              <Field data-invalid={!!errors.duration}>
                 <FieldLabel htmlFor="duration">Duration (minutes) *</FieldLabel>
                 <Input
                   type="number"
                   id="duration"
                   min="1"
                   max="480"
-                  {...register("duration")}
+                  aria-invalid={!!errors.duration}
+                  {...register("duration", { valueAsNumber: true })}
                   onChange={(e) =>
                     handleInputChange("duration", parseInt(e.target.value) || 0)
                   }
                 />
-                {errors.duration && (
-                  <p className="mt-1 text-sm text-red-600">
-                    {errors.duration.message}
-                  </p>
-                )}
+                {errors.duration && <FieldError errors={[errors.duration]} />}
               </Field>
             </FieldSet>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-              <Field>
+              <Field data-invalid={!!errors.type}>
                 <FieldLabel htmlFor="type">Session Type *</FieldLabel>
-                <Select
-                  value={watch("type")}
-                  onValueChange={(value) => setValue("type", value as JournalEntryType)}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select session type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectGroup>
-                      {Object.values(JournalEntryType).map((type) => (
-                        <SelectItem key={type} value={type}>
-                          {type}
-                        </SelectItem>
-                      ))}
-                    </SelectGroup>
-                  </SelectContent>
-                </Select>
+                <Controller
+                  name="type"
+                  control={control}
+                  render={({ field, fieldState }) => (
+                    <>
+                      <Select
+                        value={field.value}
+                        onValueChange={field.onChange}
+                      >
+                        <SelectTrigger aria-invalid={fieldState.invalid}>
+                          <SelectValue placeholder="Select session type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectGroup>
+                            {Object.values(JournalEntryType).map((type) => (
+                              <SelectItem key={type} value={type}>
+                                {type}
+                              </SelectItem>
+                            ))}
+                          </SelectGroup>
+                        </SelectContent>
+                      </Select>
+                      {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                    </>
+                  )}
+                />
               </Field>
 
-              <Field>
+              <Field data-invalid={!!errors.giNoGi}>
                 <FieldLabel htmlFor="giNoGi">Training Style *</FieldLabel>
-                <Select
-                  value={watch("giNoGi")}
-                  onValueChange={(value) => setValue("giNoGi", value as JournalEntryGiNoGi)}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select training style" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectGroup>
-                      {Object.values(JournalEntryGiNoGi).map((style) => (
-                        <SelectItem key={style} value={style}>
-                          {style}
-                        </SelectItem>
-                      ))}
-                    </SelectGroup>
-                  </SelectContent>
-                </Select>
+                <Controller
+                  name="giNoGi"
+                  control={control}
+                  render={({ field, fieldState }) => (
+                    <>
+                      <Select
+                        value={field.value}
+                        onValueChange={field.onChange}
+                      >
+                        <SelectTrigger aria-invalid={fieldState.invalid}>
+                          <SelectValue placeholder="Select training style" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectGroup>
+                            {Object.values(JournalEntryGiNoGi).map((style) => (
+                              <SelectItem key={style} value={style}>
+                                {style}
+                              </SelectItem>
+                            ))}
+                          </SelectGroup>
+                        </SelectContent>
+                      </Select>
+                      {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                    </>
+                  )}
+                />
               </Field>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-              <Field>
+              <Field data-invalid={!!errors.area}>
                 <FieldLabel htmlFor="area">Focus Area *</FieldLabel>
-                <Select
-                  value={watch("area")}
-                  onValueChange={(value) => setValue("area", value as JournalEntryArea)}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select focus area" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectGroup>
-                      {Object.values(JournalEntryArea).map((area) => (
-                        <SelectItem key={area} value={area}>
-                          {area}
-                        </SelectItem>
-                      ))}
-                    </SelectGroup>
-                  </SelectContent>
-                </Select>
+                <Controller
+                  name="area"
+                  control={control}
+                  render={({ field, fieldState }) => (
+                    <>
+                      <Select
+                        value={field.value}
+                        onValueChange={field.onChange}
+                      >
+                        <SelectTrigger aria-invalid={fieldState.invalid}>
+                          <SelectValue placeholder="Select focus area" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectGroup>
+                            {Object.values(JournalEntryArea).map((area) => (
+                              <SelectItem key={area} value={area}>
+                                {area}
+                              </SelectItem>
+                            ))}
+                          </SelectGroup>
+                        </SelectContent>
+                      </Select>
+                      {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                    </>
+                  )}
+                />
               </Field>
 
-              <Field>
+              <Field data-invalid={!!errors.feeling}>
                 <FieldLabel htmlFor="feeling">How did you feel?</FieldLabel>
-                <Select
-                  value={watch("feeling")}
-                  onValueChange={(value) => setValue("feeling", value as JournalEntryFeeling)}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select feeling" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectGroup>
-                      {Object.values(JournalEntryFeeling).map((feeling) => (
-                        <SelectItem key={feeling} value={feeling}>
-                          {feeling}
-                        </SelectItem>
-                      ))}
-                    </SelectGroup>
-                  </SelectContent>
-                </Select>
+                <Controller
+                  name="feeling"
+                  control={control}
+                  render={({ field, fieldState }) => (
+                    <>
+                      <Select
+                        value={field.value}
+                        onValueChange={field.onChange}
+                      >
+                        <SelectTrigger aria-invalid={fieldState.invalid}>
+                          <SelectValue placeholder="Select feeling" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectGroup>
+                            {Object.values(JournalEntryFeeling).map((feeling) => (
+                              <SelectItem key={feeling} value={feeling}>
+                                {feeling}
+                              </SelectItem>
+                            ))}
+                          </SelectGroup>
+                        </SelectContent>
+                      </Select>
+                      {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                    </>
+                  )}
+                />
               </Field>
             </div>
 
-            <Field>
+            <Field data-invalid={!!errors.location}>
               <FieldLabel htmlFor="location">Training Location *</FieldLabel>
               <Input
                 type="text"
                 id="location"
+                aria-invalid={!!errors.location}
                 {...register("location")}
                 onChange={(e) => handleInputChange("location", e.target.value)}
                 placeholder="e.g., Gracie Barra Downtown, Alliance BJJ..."
               />
-              {errors.location && (
-                <p className="mt-1 text-sm text-red-600">
-                  {errors.location.message}
-                </p>
-              )}
+              {errors.location && <FieldError errors={[errors.location]} />}
             </Field>
 
-            <Field>
+            <Field data-invalid={!!errors.professor}>
               <FieldLabel htmlFor="professor">Instructor/Professor</FieldLabel>
               <Input
                 type="text"
                 id="professor"
+                aria-invalid={!!errors.professor}
                 {...register("professor")}
                 onChange={(e) => handleInputChange("professor", e.target.value)}
                 placeholder="e.g., Professor Silva, Coach Johnson..."
               />
+              {errors.professor && <FieldError errors={[errors.professor]} />}
             </Field>
           </div>
 
@@ -401,66 +446,64 @@ export function JournalForm({ serverAction, journalEntry }: JournalFormProps) {
               Notes & Insights
             </FieldTitle>
 
-            <Field>
+            <Field data-invalid={!!errors.depthNotes}>
               <FieldLabel htmlFor="depthNotes">
                 Session Notes * (What happened, techniques worked on, etc.)
               </FieldLabel>
               <Textarea
                 id="depthNotes"
                 rows={6}
+                aria-invalid={!!errors.depthNotes}
                 {...register("depthNotes")}
                 onChange={(e) =>
                   handleInputChange("depthNotes", e.target.value)
                 }
                 placeholder="Describe what you worked on, techniques learned, rolls you had, etc..."
               />
-              {errors.depthNotes && (
-                <p className="mt-1 text-sm text-red-600">
-                  {errors.depthNotes.message}
-                </p>
-              )}
+              {errors.depthNotes && <FieldError errors={[errors.depthNotes]} />}
             </Field>
 
-            <Field>
+            <Field data-invalid={!!errors.questions}>
               <FieldLabel htmlFor="questions">
                 Questions or Things to Ask
               </FieldLabel>
               <Textarea
                 id="questions"
                 rows={3}
+                aria-invalid={!!errors.questions}
                 {...register("questions")}
                 onChange={(e) => handleInputChange("questions", e.target.value)}
                 placeholder="Any questions you have about techniques, positions, or concepts from today's session..."
               />
-              {errors.questions && (
-                <p className="mt-1 text-sm text-red-600">
-                  {errors.questions.message}
-                </p>
-              )}
+              {errors.questions && <FieldError errors={[errors.questions]} />}
             </Field>
 
-            <Field>
+            <Field data-invalid={!!errors.workOn}>
               <FieldLabel htmlFor="workOn">What to Work On Next</FieldLabel>
               <Textarea
                 id="workOn"
                 rows={3}
+                aria-invalid={!!errors.workOn}
                 {...register("workOn")}
                 onChange={(e) => handleInputChange("workOn", e.target.value)}
                 placeholder="What specific techniques or positions do you want to focus on in upcoming sessions?"
               />
+              {errors.workOn && <FieldError errors={[errors.workOn]} />}
             </Field>
 
-            <Field>
+            <Field data-invalid={!!errors.otherNotes}>
               <FieldLabel htmlFor="otherNotes">Additional Notes</FieldLabel>
               <Textarea
                 id="otherNotes"
                 rows={3}
+                aria-invalid={!!errors.otherNotes}
                 {...register("otherNotes")}
                 onChange={(e) =>
                   handleInputChange("otherNotes", e.target.value)
                 }
                 placeholder="Any other thoughts, observations, or insights from your training..."
               />
+              {errors.otherNotes && <FieldError errors={[errors.otherNotes]} />}
             </Field>
           </FieldSet>
 

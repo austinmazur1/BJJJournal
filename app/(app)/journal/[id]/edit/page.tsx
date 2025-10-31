@@ -1,29 +1,10 @@
 import { JournalForm } from "@/components/journal/JournalForm"
-import { JournalEntryType, JournalEntryGiNoGi, JournalEntryArea, JournalEntryFeeling } from "@/lib/models/JournalEntry"
 import { updateJournalEntryAction, getJournalEntry } from "@/lib/journalStore"
 import Link from "next/link"
-
-export interface JournalFormData {
-    date: string
-    duration: number
-    type: JournalEntryType
-    giNoGi: JournalEntryGiNoGi
-    area: JournalEntryArea
-    feeling?: JournalEntryFeeling
-    questions?: string
-    location: string
-    professor?: string
-    depthNotes: string
-    otherNotes?: string
-    workOn?: string
-    partners: string[]
-  }
-
 
 export default async function JournalEntryEditPage({ params }: { params: { id: string } }) {
     const { id } = await params
     const journalEntry = await getJournalEntry(id)
-    console.log(journalEntry)
 
     return (
         <div className="min-h-screen bg-gray-50 py-8">

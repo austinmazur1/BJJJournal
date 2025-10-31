@@ -4,7 +4,7 @@ import Link from "next/link"
 import { Calendar, Clock, MapPin, ArrowRight } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import type { SerializedJournalEntry } from "@/lib/journalStore"
+import { SerializedJournalEntry } from "@/types/journalEntries"
 
 interface RecentActivityProps {
   entries: SerializedJournalEntry[]

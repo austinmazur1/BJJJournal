@@ -5,8 +5,7 @@ import OnboardingGuard from "@/components/OnboardingGuard";
 import { StatsOverview } from "@/components/dashboard/StatsOverview";
 import Link from "next/link";
 import { getComprehensiveStatistics, getRecentJournalEntries } from "@/lib/journalStore";
-import { Plus, BookOpen } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Plus } from "lucide-react";
 import { RecentActivity } from "@/components/dashboard/RecentActivity";
 
 export default async function Home() {
@@ -33,31 +32,14 @@ export default async function Home() {
           <div className="max-w-6xl mx-auto">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-lg font-semibold text-gray-900">Quick Actions</h2>
-              <div className="flex gap-2">
-                <Link href="/journal/new">
-                  <Button className="gap-2">
-                    <Plus className="h-4 w-4" />
-                    New Entry
-                  </Button>
-                </Link>
-                <Link href="/journal">
-                  <Button variant="outline" className="gap-2">
-                    <BookOpen className="h-4 w-4" />
-                    View All
-                  </Button>
-                </Link>
-              </div>
             </div>
-
             <StatsOverview stats={stats} />
-
             <div className="mt-8">
               <h2 className="text-lg font-semibold text-gray-900 mb-4">Recent Activity</h2>
               <RecentActivity entries={recentEntries} />
             </div>
           </div>
         </div>
-
         {/* Floating Action Button for Mobile */}
         <Link
           href="/journal/new"

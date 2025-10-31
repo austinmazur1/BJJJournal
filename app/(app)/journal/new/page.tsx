@@ -1,23 +1,6 @@
 import { JournalForm } from "@/components/journal/JournalForm"
-import { JournalEntryType, JournalEntryGiNoGi, JournalEntryArea, JournalEntryFeeling } from "@/lib/models/JournalEntry"
 import { createJournalEntryAction } from "@/lib/journalStore"
 import Link from "next/link"
-
-export interface JournalFormData {
-  date: string
-  duration: number
-  type: JournalEntryType
-  giNoGi: JournalEntryGiNoGi
-  area: JournalEntryArea
-  feeling?: JournalEntryFeeling
-  questions?: string
-  location: string
-  professor?: string
-  depthNotes: string
-  otherNotes?: string
-  workOn?: string
-  partners: string[]
-}
 
 export default function NewJournalEntryPage() {
   return (
@@ -38,7 +21,6 @@ export default function NewJournalEntryPage() {
             Record your training session details and insights
           </p>
         </div>
-
         <JournalForm serverAction={createJournalEntryAction} />
       </div>
     </div>

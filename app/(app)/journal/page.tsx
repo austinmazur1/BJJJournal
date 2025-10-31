@@ -48,9 +48,7 @@ export default async function JournalEntriesPage() {
             </Link>
           </div>
         </div>
-
         <JournalEntriesGrid entries={journalEntries} />
-        
       </div>
     </div>
   )
