@@ -3,6 +3,7 @@ import { connectMongoose } from "@/lib/db"
 import { UserModel, UserBeltLevel, BeltStripe } from "@/lib/models/User"
 import type { UserDocument } from "@/lib/models/User"
 import { ConflictError, NotFoundError, ValidationError } from "@/lib/errors"
+import { JournalEntryModel } from "./models/JournalEntry"
 
 export type StoredUser = {
   id: string
@@ -126,3 +127,17 @@ export async function updateProfile(
   return mapUserDocumentToStoredUser(updated)
 }
 
+export async function deleteUser(userId: string): Promise<void> {
+  await connectMongoose()
+  
+  const user = await UserModel.findById(userId)
+  if (!user) {
+    throw new NotFoundError("User")
+  }
+
+  const journalEntries = await JournalEntryModel.find({ userId })
+  if (journalEntries && journalEntries.length > 0) {
+    await JournalEntryModel.deleteMany({ userId })
+  }
+  await UserModel.findByIdAndDelete(userId)
+}
