@@ -1,5 +1,5 @@
 "use client"
-
+// TODO: Convert to server component and use the server action
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { OnboardingForm } from "@/components/onboarding/OnboardingForm"
