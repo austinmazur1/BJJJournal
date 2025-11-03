@@ -3,22 +3,42 @@
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { BeltAvatar } from "@/components/BeltAvatar";
 import type { StoredUser } from "@/lib/userStore";
 import { ChevronDown, Plus } from "lucide-react";
 import DropdownMenu from "@/components/header/DropdownMenu";
+import { getBeltBorderColor } from "@/lib/utils/beltColors";
 
 export default function Header({ userProfile }: { userProfile: StoredUser | null }) {
   const { data: session } = useSession();
   const pathname = usePathname();
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const beltColor = getBeltBorderColor(userProfile?.beltLevel)
 
   const isActive = (path: string) => {
     if (path === "/" && pathname === "/") return true;
     if (path !== "/" && pathname.startsWith(path)) return true;
     return false;
   };
+
+  // Close menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setShowUserMenu(false);
+      }
+    };
+
+    if (showUserMenu) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [showUserMenu]);
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-gray-100 bg-white/80 backdrop-blur-sm">
@@ -60,10 +80,11 @@ export default function Header({ userProfile }: { userProfile: StoredUser | null
         </nav>
 
         {session?.user && (
-          <div className="relative">
+          <div className="relative" ref={menuRef}>
             <button
               onClick={() => setShowUserMenu(!showUserMenu)}
-              className="flex items-center gap-2.5 rounded-lg px-1.5 py-1 transition-colors hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+              className={"flex items-center gap-2.5 rounded-lg px-1.5 py-1 transition-colors hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2"}
+              style={{ "--tw-ring-color": beltColor } as React.CSSProperties}
             >
               <BeltAvatar
                 beltLevel={userProfile?.beltLevel}
@@ -81,14 +102,8 @@ export default function Header({ userProfile }: { userProfile: StoredUser | null
               />
             </button>
 
-            {showUserMenu && (
-              <>
-                <div
-                  className="fixed inset-0 z-40"
-                  onClick={() => setShowUserMenu(false)}
-                />
-                {userProfile && <DropdownMenu userProfile={userProfile} setShowUserMenu={setShowUserMenu} />}                
-              </>
+            {showUserMenu && userProfile && (
+              <DropdownMenu userProfile={userProfile} setShowUserMenu={setShowUserMenu} />
             )}
           </div>
         )}

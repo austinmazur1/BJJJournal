@@ -43,8 +43,8 @@ export default function AlertDialog({
           </DialogClose>
           <DialogClose asChild>
             <Button variant={confirmButtonVariant} onClick={onConfirm}>
-              {confirmButtonText}
               {confirmButtonIcon}
+              {confirmButtonText}
             </Button>
           </DialogClose>
         </DialogFooter>

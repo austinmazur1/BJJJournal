@@ -2,11 +2,10 @@
 
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
-import { findUserById, updateProfile } from "@/lib/userStore"
+import { updateProfile, deleteUser } from "@/lib/userStore"
 import { ProfileInformationValidation, profileInformationValidation } from "@/lib/validations/profileInformation"
 import { revalidatePath } from "next/cache"
 import { ValidationError } from "@/lib/errors"
-import { getJournalEntries } from "./journalStore"
 
 export async function updateProfileAction(data: ProfileInformationValidation) {
   const session = await getServerSession(authOptions)
@@ -39,5 +38,31 @@ export async function updateProfileAction(data: ProfileInformationValidation) {
     throw error instanceof Error 
       ? error 
       : new Error("Failed to update profile")
+  }
+}
+
+export async function deleteAccountAction() {
+  const session = await getServerSession(authOptions)
+  
+  if (!session?.user?.id) {
+    throw new Error("Unauthorized: You must be signed in to delete your account")
+  }
+  
+  try {
+    await deleteUser(session.user.id)
+    
+    // Revalidate cached paths that may contain user data
+    revalidatePath("/")
+    revalidatePath("/profile")
+    revalidatePath("/journal")
+    
+    return {
+      success: true,
+    }
+  } catch (error) {
+    console.error("Error deleting account:", error)
+    throw error instanceof Error 
+      ? error 
+      : new Error("Failed to delete account")
   }
 }

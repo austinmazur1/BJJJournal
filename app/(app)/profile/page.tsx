@@ -3,7 +3,7 @@ import { authOptions } from "@/lib/auth"
 import { findUserById } from "@/lib/userStore"
 import { ProfileForm } from "@/components/profile/ProfileForm"
 import { redirect } from "next/navigation"
-import { updateProfileAction } from "@/lib/profileActions"
+import { updateProfileAction, deleteAccountAction } from "@/lib/profileActions"
 
 export default async function ProfileSettingsPage() {
   const session = await getServerSession(authOptions) 
@@ -31,13 +31,13 @@ export default async function ProfileSettingsPage() {
         <div className="max-w-2xl mx-auto">
           <div className="text-center mb-8">
             <h1 className="text-4xl font-bold text-gray-900 mb-2">
-              Profile Settings
+              Profile
             </h1>
             <p className="text-lg text-gray-600">
               Manage your account information and preferences
             </p>
           </div>
-          <ProfileForm user={user} onUpdate={updateProfileAction} />
+          <ProfileForm user={user} onUpdate={updateProfileAction} onDelete={deleteAccountAction} />
         </div>
       </div>
     </div>
