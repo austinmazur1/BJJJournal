@@ -4,7 +4,7 @@ import { StoredUser } from "@/lib/userStore";
 import { Award, MapPin, Home, BookOpen, UserCog, LogOut } from "lucide-react";
 import { signOut } from "next-auth/react";
 import Link from "next/link";
-
+import ThemeToggle from "@/components/ThemeToggle";
 export default function DropdownMenu({ userProfile, setShowUserMenu }: { userProfile: StoredUser; setShowUserMenu: (show: boolean) => void }) {
   const getBeltDisplay = () => {
     if (!userProfile?.beltLevel) return null;
@@ -20,11 +20,14 @@ export default function DropdownMenu({ userProfile, setShowUserMenu }: { userPro
   return (
     <div className="absolute right-0 mt-2 w-64 rounded-lg border border-gray-200 bg-white shadow-lg z-50">
       <div className="border-b border-gray-100 p-4">
-        <div className="mb-3">
+        <div className="mb-3 flex items-center justify-between">
+          <div>
           <p className="text-sm font-semibold text-gray-900">
             {userProfile.name ?? "User"}
           </p>
           <p className="text-xs text-gray-500">{userProfile.email}</p>
+          </div>
+          <ThemeToggle />
         </div>
         {getBeltDisplay() && (
           <div className="flex items-center gap-1.5 border-t border-gray-100 pt-2 text-xs text-gray-600">

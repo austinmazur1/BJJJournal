@@ -25,7 +25,7 @@ export default function OnboardingGuard({ children, userProfile }: OnboardingGua
 
   // Show loading or nothing while checking
   if (isChecking) {
-    return <div>Loading...</div>
+    return <></>
   }
 
   return <>{children}</>
