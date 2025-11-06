@@ -5,6 +5,7 @@ import { findUserById } from "@/lib/userStore"
 import { JournalEntriesGrid } from "@/components/journal/JournalEntriesGrid"
 import Link from "next/link"
 import { Plus } from "lucide-react"
+import JournalFilters from "@/components/journal/JournalFilters"
 
 export default async function JournalEntriesPage() {
   const session = await getServerSession(authOptions)
@@ -48,8 +49,9 @@ export default async function JournalEntriesPage() {
             </Link>
           </div>
         </div>
+        <JournalFilters />
         <JournalEntriesGrid entries={journalEntries} />
       </div>
     </div>
-  )
+  );
 }

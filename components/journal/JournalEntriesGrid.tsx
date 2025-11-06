@@ -1,18 +1,36 @@
-"use client"
+"use client";
 
-import Link from "next/link"
-import { SerializedJournalEntry } from "@/types/journalEntries"
-import { Card, CardContent, CardHeader } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Calendar, Clock, MapPin, User, Users } from "lucide-react"
-import { getFeelingEmoji, formatJournalGridDate, truncateNotes, getGiNoGiGradientClass, getJournalEntryTypeBadgeColor } from "@/lib/utils/journalElementsStyling"
-import { JournalEntryGiNoGi, JournalEntryType } from "@/lib/models/JournalEntry"
+import Link from "next/link";
+import { SerializedJournalEntry } from "@/types/journalEntries";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Calendar, Clock, MapPin, User, Users } from "lucide-react";
+import {
+  getFeelingEmoji,
+  formatJournalGridDate,
+  truncateNotes,
+  getGiNoGiGradientClass,
+  getJournalEntryTypeBadgeColor,
+} from "@/lib/utils/journalElementsStyling";
+import {
+  JournalEntryGiNoGi,
+  JournalEntryType,
+} from "@/lib/models/JournalEntry";
+import { filterJournalEntries } from "@/lib/utils/filterJournalEntries";
+import { useJournalFilters } from "@/hooks/useJournalFilters";
+import { useMemo } from "react";
 
 interface JournalEntriesGridProps {
-  entries: SerializedJournalEntry[]
+  entries: SerializedJournalEntry[];
 }
 
 export function JournalEntriesGrid({ entries }: JournalEntriesGridProps) {
+  const { filters } = useJournalFilters();
+
+  const filteredEntries = useMemo(() => {
+    return filterJournalEntries(entries, filters);
+  }, [entries, filters]);
+
   if (entries.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-16 px-4">
@@ -21,7 +39,8 @@ export function JournalEntriesGrid({ entries }: JournalEntriesGridProps) {
             No Journal Entries Yet
           </h3>
           <p className="text-gray-600 mb-6">
-            Start documenting your BJJ journey! Create your first entry to track your progress.
+            Start documenting your BJJ journey! Create your first entry to track
+            your progress.
           </p>
           <Link
             href="/journal/new"
@@ -31,33 +50,61 @@ export function JournalEntriesGrid({ entries }: JournalEntriesGridProps) {
           </Link>
         </div>
       </div>
-    )
+    );
+  }
+
+  if (filteredEntries.length === 0 && entries.length > 0) {
+    return (
+      <div className="flex flex-col items-center justify-center py-16 px-4">
+        <div className="text-center max-w-md">
+          <h3 className="text-2xl font-semibold text-gray-900 mb-2">
+            No Entries Match Your Filters
+          </h3>
+          <p className="text-gray-600">
+            Try adjusting your search or filter criteria to see more results.
+          </p>
+        </div>
+      </div>
+    );
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {entries.map((entry) => (
-        <JournalEntryCard key={entry._id} entry={entry} />
-      ))}
-    </div>
-  )
+    <>
+      <div className="my-4 text-sm text-gray-600">
+        Showing {filteredEntries.length} of {entries.length}{" "}
+        {entries.length === 1 ? "entry" : "entries"}
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {filteredEntries.map((entry) => (
+          <JournalEntryCard key={entry._id} entry={entry} />
+        ))}
+      </div>
+    </>
+  );
 }
 
 function JournalEntryCard({ entry }: { entry: SerializedJournalEntry }) {
   return (
     <Link href={`/journal/${entry._id}`} className="group">
-      <Card className={`${getGiNoGiGradientClass(entry.giNoGi as JournalEntryGiNoGi)} border-2 transition-all duration-300 hover:shadow-lg hover:-translate-y-1 cursor-pointer h-full`}>
+      <Card
+        className={`${getGiNoGiGradientClass(
+          entry.giNoGi as JournalEntryGiNoGi
+        )} border-2 transition-all duration-300 hover:shadow-lg hover:-translate-y-1 cursor-pointer h-full`}
+      >
         <CardHeader className="pb-3">
           <div className="flex items-start justify-between gap-2 mb-3">
             <div className="flex items-center gap-2 text-sm text-gray-700">
               <Calendar className="h-4 w-4" />
-              <span className="font-medium">{formatJournalGridDate(new Date(entry.date))}</span>
+              <span className="font-medium">
+                {formatJournalGridDate(new Date(entry.date))}
+              </span>
             </div>
-            <Badge 
-              variant="outline" 
-              className={entry.giNoGi === "Gi" 
-                ? "bg-blue-100 text-blue-800 border-blue-300 font-semibold" 
-                : "bg-purple-100 text-purple-800 border-purple-300 font-semibold"
+            <Badge
+              variant="outline"
+              className={
+                entry.giNoGi === "Gi"
+                  ? "bg-blue-100 text-blue-800 border-blue-300 font-semibold"
+                  : "bg-purple-100 text-purple-800 border-purple-300 font-semibold"
               }
             >
               {entry.giNoGi}
@@ -65,14 +112,25 @@ function JournalEntryCard({ entry }: { entry: SerializedJournalEntry }) {
           </div>
 
           <div className="flex flex-wrap gap-2 mb-3">
-            <Badge variant="outline" className={getJournalEntryTypeBadgeColor(entry.type as JournalEntryType)}>
+            <Badge
+              variant="outline"
+              className={getJournalEntryTypeBadgeColor(
+                entry.type as JournalEntryType
+              )}
+            >
               {entry.type}
             </Badge>
-            <Badge variant="outline" className="bg-amber-100 text-amber-800 border-amber-200">
+            <Badge
+              variant="outline"
+              className="bg-amber-100 text-amber-800 border-amber-200"
+            >
               {entry.area}
             </Badge>
             {entry.feeling && (
-              <Badge variant="outline" className="bg-slate-100 text-slate-800 border-slate-200">
+              <Badge
+                variant="outline"
+                className="bg-slate-100 text-slate-800 border-slate-200"
+              >
                 {getFeelingEmoji(entry.feeling)} {entry.feeling}
               </Badge>
             )}
@@ -107,7 +165,10 @@ function JournalEntryCard({ entry }: { entry: SerializedJournalEntry }) {
             {entry.partners && entry.partners.length > 0 && (
               <div className="flex items-center gap-2 text-sm text-gray-700">
                 <Users className="h-4 w-4 flex-shrink-0" />
-                <span>{entry.partners.length} training partner{entry.partners.length !== 1 ? "s" : ""}</span>
+                <span>
+                  {entry.partners.length} training partner
+                  {entry.partners.length !== 1 ? "s" : ""}
+                </span>
               </div>
             )}
           </div>
@@ -120,6 +181,5 @@ function JournalEntryCard({ entry }: { entry: SerializedJournalEntry }) {
         </CardContent>
       </Card>
     </Link>
-  )
+  );
 }
-
