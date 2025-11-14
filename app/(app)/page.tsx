@@ -31,11 +31,11 @@ export default async function Home() {
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="max-w-6xl mx-auto">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-lg font-semibold text-foreground">Quick Actions</h2>
+              <h2 className="text-lg font-semibold text-secondary-foreground">Quick Actions</h2>
             </div>
             <StatsOverview stats={stats} />
             <div className="mt-8">
-              <h2 className="text-lg font-semibold text-foreground mb-4">Recent Activity</h2>
+              <h2 className="text-lg font-semibold text-secondary-foreground mb-4">Recent Activity</h2>
               <RecentActivity entries={recentEntries} />
             </div>
           </div>

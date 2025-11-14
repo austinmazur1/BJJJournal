@@ -164,8 +164,8 @@ export function StatsOverview({ stats }: StatsOverviewProps) {
       </CardHeader>
       <CardContent>
         {isEditing && (
-          <div className="p-4 bg-gray-50 rounded-lg">
-            <p className="text-sm font-medium text-gray-700 mb-3">
+          <div className="p-4 bg-card border border-border rounded-lg">
+            <p className="text-sm font-medium text-primary mb-3">
               Toggle stats to show/hide them on your dashboard
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 max-h-96 overflow-y-auto">
@@ -177,19 +177,19 @@ export function StatsOverview({ stats }: StatsOverviewProps) {
                     onClick={() => handleToggle(stat.key)}
                     className={`p-3 rounded-lg border-2 text-left transition-all ${
                       isEnabled
-                        ? "border-blue-500 bg-blue-50"
-                        : "border-gray-200 bg-white hover:border-gray-300"
+                        ? "border-primary bg-accent"
+                        : "border-border bg-card hover:border-primary hover:bg-accent"
                     }`}
                   >
                     <div className="flex items-center justify-between mb-1">
-                      <span className="text-sm font-medium text-gray-900">{stat.label}</span>
+                      <span className="text-sm font-medium text-primary">{stat.label}</span>
                       {isEnabled ? (
-                        <Eye className="size-4 text-blue-600" />
+                        <Eye className="size-4 text-primary" />
                       ) : (
-                        <EyeOff className="size-4 text-gray-400" />
+                        <EyeOff className="size-4 text-muted-foreground" />
                       )}
                     </div>
-                    <p className="text-xs text-gray-500">{stat.description}</p>
+                    <p className="text-xs text-muted-foreground">{stat.description}</p>
                   </button>
                 )
               })}
@@ -209,7 +209,7 @@ export function StatsOverview({ stats }: StatsOverviewProps) {
           <>
             {visibleStats.length === 0 ? (
               <div className="text-center py-8">
-                <p className="text-gray-500">No stats enabled. Click "Customize" to add stats!</p>
+                <p className="text-muted-foreground">No stats enabled. Click "Customize" to add stats!</p>
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -220,10 +220,10 @@ export function StatsOverview({ stats }: StatsOverviewProps) {
                   return (
                     <div
                       key={stat.key}
-                      className="text-center p-4 bg-gray-50 rounded-lg"
+                      className="text-center p-4 bg-bg border border-border rounded-lg"
                     >
                       {renderStatValue(stat.key)}
-                      <p className="text-sm text-gray-600 mt-1">{config.label}</p>
+                      <p className="text-sm text-secondary-foreground mt-1">{config.label}</p>
                     </div>
                   )
                 })}
