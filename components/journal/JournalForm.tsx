@@ -154,14 +154,14 @@ export function JournalForm({ serverAction, journalEntry }: JournalFormProps) {
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+    <div className="bg-card rounded-lg shadow-sm border border-border">
       <form
         onSubmit={handleSubmit(onSubmit)}
         className="p-6 space-y-8"
       >
         <FieldGroup>
           <div className="space-y-6">
-            <FieldTitle className="text-xl font-semibold text-gray-900 border-b border-gray-200 pb-2 block w-full">
+            <FieldTitle className="text-xl font-semibold text-primary border-b border-border pb-2 block w-full">
               Session Details
             </FieldTitle>
 
@@ -375,7 +375,7 @@ export function JournalForm({ serverAction, journalEntry }: JournalFormProps) {
 
           <Field>
             <FieldSet>
-              <FieldTitle className="text-xl font-semibold text-gray-900 border-b border-gray-200 pb-2 block w-full">
+              <FieldTitle className="text-xl font-semibold text-primary border-b border-border pb-2 block w-full">
                 Training Partners
               </FieldTitle>
 
@@ -419,17 +419,17 @@ export function JournalForm({ serverAction, journalEntry }: JournalFormProps) {
                     {fields.map((field, index) => (
                       <Badge
                         key={field.id}
-                        className="bg-blue-50 text-blue-700 hover:bg-blue-50 text-sm px-3 py-1"
+                        className="bg-card-foreground text-primary-foreground hover:bg-blue-50 text-sm px-3 py-1"
                       >
                         <input
                           {...register(`partners.${index}.name` as const)}
-                          className="bg-transparent border-none outline-none text-blue-700"
+                          className="bg-transparent border-none outline-none text-primary-foreground"
                           readOnly
                         />
                         <button
                           type="button"
                           onClick={() => remove(index)}
-                          className="ml-2 text-blue-600 hover:text-blue-800"
+                          className="ml-2 text-primary-foreground hover:text-primary-foreground/50"
                         >
                           ×
                         </button>
@@ -442,7 +442,7 @@ export function JournalForm({ serverAction, journalEntry }: JournalFormProps) {
           </Field>
 
           <FieldSet>
-            <FieldTitle className="text-xl font-semibold text-gray-900 border-b border-gray-200 pb-2 block w-full">
+            <FieldTitle className="text-xl font-semibold text-primary border-b border-border pb-2 block w-full">
               Notes & Insights
             </FieldTitle>
 
@@ -507,7 +507,7 @@ export function JournalForm({ serverAction, journalEntry }: JournalFormProps) {
             </Field>
           </FieldSet>
 
-          <div className="flex flex-col sm:flex-row gap-4 pt-6 border-t border-gray-200">
+          <div className="flex flex-col sm:flex-row gap-4 pt-6 border-t border-border">
             <Button
               type="button"
               onClick={() => window.history.back()}

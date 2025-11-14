@@ -35,16 +35,16 @@ export function JournalEntriesGrid({ entries }: JournalEntriesGridProps) {
     return (
       <div className="flex flex-col items-center justify-center py-16 px-4">
         <div className="text-center max-w-md">
-          <h3 className="text-2xl font-semibold text-gray-900 mb-2">
+          <h3 className="text-2xl font-semibold text-primary mb-2">
             No Journal Entries Yet
           </h3>
-          <p className="text-gray-600 mb-6">
+          <p className="text-muted-foreground mb-6">
             Start documenting your BJJ journey! Create your first entry to track
             your progress.
           </p>
           <Link
             href="/journal/new"
-            className="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+            className="inline-flex items-center px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors font-medium"
           >
             Create First Entry
           </Link>
@@ -57,10 +57,10 @@ export function JournalEntriesGrid({ entries }: JournalEntriesGridProps) {
     return (
       <div className="flex flex-col items-center justify-center py-16 px-4">
         <div className="text-center max-w-md">
-          <h3 className="text-2xl font-semibold text-gray-900 mb-2">
+          <h3 className="text-2xl font-semibold text-primary mb-2">
             No Entries Match Your Filters
           </h3>
-          <p className="text-gray-600">
+          <p className="text-muted-foreground">
             Try adjusting your search or filter criteria to see more results.
           </p>
         </div>
@@ -70,7 +70,7 @@ export function JournalEntriesGrid({ entries }: JournalEntriesGridProps) {
 
   return (
     <>
-      <div className="my-4 text-sm text-gray-600">
+      <div className="my-4 text-sm text-muted-foreground">
         Showing {filteredEntries.length} of {entries.length}{" "}
         {entries.length === 1 ? "entry" : "entries"}
       </div>
@@ -87,13 +87,10 @@ function JournalEntryCard({ entry }: { entry: SerializedJournalEntry }) {
   return (
     <Link href={`/journal/${entry._id}`} className="group">
       <Card
-        className={`${getGiNoGiGradientClass(
-          entry.giNoGi as JournalEntryGiNoGi
-        )} border-2 transition-all duration-300 hover:shadow-lg hover:-translate-y-1 cursor-pointer h-full`}
-      >
+        className={`border-border transition-all duration-300 hover:shadow-lg hover:-translate-y-1 cursor-pointer h-full`}>
         <CardHeader className="pb-3">
           <div className="flex items-start justify-between gap-2 mb-3">
-            <div className="flex items-center gap-2 text-sm text-gray-700">
+            <div className="flex items-center gap-2 text-sm text-secondary-foreground">
               <Calendar className="h-4 w-4" />
               <span className="font-medium">
                 {formatJournalGridDate(new Date(entry.date))}
@@ -103,8 +100,8 @@ function JournalEntryCard({ entry }: { entry: SerializedJournalEntry }) {
               variant="outline"
               className={
                 entry.giNoGi === "Gi"
-                  ? "bg-blue-100 text-blue-800 border-blue-300 font-semibold"
-                  : "bg-purple-100 text-purple-800 border-purple-300 font-semibold"
+                  ? "bg-indigo-50 text-indigo-700 border-indigo-200 dark:bg-indigo-950/60 dark:text-indigo-300 dark:border-indigo-800/50 font-semibold"
+                  : "bg-violet-50 text-violet-700 border-violet-200 dark:bg-violet-950/60 dark:text-violet-300 dark:border-violet-800/50 font-semibold"
               }
             >
               {entry.giNoGi}
@@ -122,48 +119,48 @@ function JournalEntryCard({ entry }: { entry: SerializedJournalEntry }) {
             </Badge>
             <Badge
               variant="outline"
-              className="bg-amber-100 text-amber-800 border-amber-200"
+              className="bg-amber-50 text-amber-700 border-amber-200"
             >
               {entry.area}
             </Badge>
             {entry.feeling && (
               <Badge
                 variant="outline"
-                className="bg-slate-100 text-slate-800 border-slate-200"
+                className="bg-slate-50 text-slate-700 border-slate-200"
               >
                 {getFeelingEmoji(entry.feeling)} {entry.feeling}
               </Badge>
             )}
           </div>
 
-          <div className="flex items-center gap-2 text-sm text-gray-600">
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <Clock className="h-4 w-4" />
             <span>{entry.duration} minutes</span>
           </div>
         </CardHeader>
 
         <CardContent className="space-y-3">
-          <div className="bg-white/60 backdrop-blur-sm rounded-lg p-3 border border-gray-200/50">
-            <p className="text-sm text-gray-700 line-clamp-3 leading-relaxed">
+          <div className="bg-card backdrop-blur-sm rounded-lg p-3 border border-border">
+            <p className="text-sm text-muted-foreground line-clamp-3 leading-relaxed">
               {truncateNotes(entry.depthNotes)}
             </p>
           </div>
 
           <div className="space-y-2">
             {entry.location && (
-              <div className="flex items-start gap-2 text-sm text-gray-700">
+              <div className="flex items-start gap-2 text-sm text-muted-foreground">
                 <MapPin className="h-4 w-4 mt-0.5 flex-shrink-0" />
                 <span className="line-clamp-1">{entry.location}</span>
               </div>
             )}
             {entry.professor && (
-              <div className="flex items-start gap-2 text-sm text-gray-700">
+              <div className="flex items-start gap-2 text-sm text-muted-foreground">
                 <User className="h-4 w-4 mt-0.5 flex-shrink-0" />
                 <span className="line-clamp-1">{entry.professor}</span>
               </div>
             )}
             {entry.partners && entry.partners.length > 0 && (
-              <div className="flex items-center gap-2 text-sm text-gray-700">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Users className="h-4 w-4 flex-shrink-0" />
                 <span>
                   {entry.partners.length} training partner
@@ -173,8 +170,8 @@ function JournalEntryCard({ entry }: { entry: SerializedJournalEntry }) {
             )}
           </div>
 
-          <div className="pt-2 border-t border-gray-200/50">
-            <p className="text-xs text-gray-500 group-hover:text-blue-600 transition-colors text-right">
+          <div className="pt-2 border-t border-border">
+            <p className="text-xs text-muted-foreground group-hover:text-primary transition-colors text-right">
               Click to view full entry →
             </p>
           </div>
