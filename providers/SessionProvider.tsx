@@ -4,6 +4,7 @@ import { SessionProvider } from "next-auth/react";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 import type { ReactNode } from "react";
 import { ThemeProvider } from "@/providers/ThemeProvider";
+import { StatsPreferencesProvider } from "@/hooks/useStatsPreferences";
 
 export default function Providers({ children }: { children: ReactNode }) {
   return (
@@ -15,7 +16,9 @@ export default function Providers({ children }: { children: ReactNode }) {
           enableSystem
           disableTransitionOnChange
         >
-          {children}
+          <StatsPreferencesProvider>
+            {children}
+          </StatsPreferencesProvider>
         </ThemeProvider>
       </NuqsAdapter>
     </SessionProvider>
