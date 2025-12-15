@@ -167,21 +167,15 @@ export interface ComprehensiveStats {
   totalSessions: number
   totalTimeTrained: string
   sessionsThisMonth: number
-  sessionsThisWeek: number
-  averageDuration: string
   giVsNoGi: {
     gi: number
     noGi: number
     percentage: { gi: number; noGi: number }
   }
   mostCommonPartner: { name: string; count: number } | null
-  mostCommonPartnerThisMonth: { name: string; count: number } | null
   mostCommonArea: { area: string; count: number } | null
-  trainingFrequency: number // sessions per week
-  mostCommonType: { type: string; count: number } | null
-  favoriteLocation: { location: string; count: number } | null
-  mostCommonProfessor: { professor: string; count: number } | null
-  trainingStreak: number // consecutive weeks
+  trainingFrequency: number
+  // trainingStreak: number // consecutive weeks
 }
 
 export async function getComprehensiveStatistics(user: StoredUser): Promise<ComprehensiveStats> {
@@ -193,8 +187,6 @@ export async function getComprehensiveStatistics(user: StoredUser): Promise<Comp
   const totalSessions = journalEntries.length
   const totalTimeMinutes = journalEntries.reduce((acc, curr) => acc + (curr.duration || 0), 0)
   const totalTimeTrained = formatDuration(totalTimeMinutes)
-  const averageDurationMinutes = totalSessions > 0 ? totalTimeMinutes / totalSessions : 0
-  const averageDuration = formatDuration(Math.round(averageDurationMinutes))
 
   const now = new Date()
   const currentMonth = now.getMonth()
@@ -206,10 +198,6 @@ export async function getComprehensiveStatistics(user: StoredUser): Promise<Comp
 
   const sessionsThisMonth = journalEntries.filter(
     (entry) => entry.date >= startOfMonth
-  ).length
-
-  const sessionsThisWeek = journalEntries.filter(
-    (entry) => entry.date >= startOfWeek
   ).length
 
   const giCount = journalEntries.filter((e) => e.giNoGi === JournalEntryGiNoGi.GI).length
@@ -252,9 +240,6 @@ export async function getComprehensiveStatistics(user: StoredUser): Promise<Comp
         })
       }
     })
-  const mostCommonPartnerThisMonth = Object.entries(monthPartnerCounts)
-    .map(([name, count]) => ({ name, count }))
-    .sort((a, b) => b.count - a.count)[0] || null
 
   const areaCounts: Record<string, number> = {}
   journalEntries.forEach((entry) => {
@@ -271,17 +256,10 @@ export async function getComprehensiveStatistics(user: StoredUser): Promise<Comp
       totalSessions: 0,
       totalTimeTrained: "0m",
       sessionsThisMonth: 0,
-      sessionsThisWeek: 0,
-      averageDuration: "0m",
       giVsNoGi: { gi: 0, noGi: 0, percentage: { gi: 0, noGi: 0 } },
       mostCommonPartner: null,
-      mostCommonPartnerThisMonth: null,
       mostCommonArea: null,
       trainingFrequency: 0,
-      mostCommonType: null,
-      favoriteLocation: null,
-      mostCommonProfessor: null,
-      trainingStreak: 0,
     }
   }
 
@@ -299,9 +277,6 @@ export async function getComprehensiveStatistics(user: StoredUser): Promise<Comp
       typeCounts[entry.type] = (typeCounts[entry.type] || 0) + 1
     }
   })
-  const mostCommonType = Object.entries(typeCounts)
-    .map(([type, count]) => ({ type, count }))
-    .sort((a, b) => b.count - a.count)[0] || null
 
   const locationCounts: Record<string, number> = {}
   journalEntries.forEach((entry) => {
@@ -309,9 +284,6 @@ export async function getComprehensiveStatistics(user: StoredUser): Promise<Comp
       locationCounts[entry.location] = (locationCounts[entry.location] || 0) + 1
     }
   })
-  const favoriteLocation = Object.entries(locationCounts)
-    .map(([location, count]) => ({ location, count }))
-    .sort((a, b) => b.count - a.count)[0] || null
 
   const professorCounts: Record<string, number> = {}
   journalEntries.forEach((entry) => {
@@ -319,9 +291,6 @@ export async function getComprehensiveStatistics(user: StoredUser): Promise<Comp
       professorCounts[entry.professor.trim()] = (professorCounts[entry.professor.trim()] || 0) + 1
     }
   })
-  const mostCommonProfessor = Object.entries(professorCounts)
-    .map(([professor, count]) => ({ professor, count }))
-    .sort((a, b) => b.count - a.count)[0] || null
 
   let streak = 0
   const sessionsByWeek: Set<string> = new Set()
@@ -345,17 +314,11 @@ export async function getComprehensiveStatistics(user: StoredUser): Promise<Comp
     totalSessions,
     totalTimeTrained,
     sessionsThisMonth,
-    sessionsThisWeek,
-    averageDuration,
     giVsNoGi,
     mostCommonPartner,
-    mostCommonPartnerThisMonth,
     mostCommonArea,
     trainingFrequency,
-    mostCommonType,
-    favoriteLocation,
-    mostCommonProfessor,
-    trainingStreak: streak,
+    // trainingStreak: streak, //Put this in the navbar?
   }
 }
 

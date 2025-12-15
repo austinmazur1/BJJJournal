@@ -7,6 +7,7 @@ import Link from "next/link";
 import { getComprehensiveStatistics, getRecentJournalEntries } from "@/lib/journalStore";
 import { Plus } from "lucide-react";
 import { RecentActivity } from "@/components/dashboard/RecentActivity";
+import { DropdownMenuCheckboxes } from "@/components/dashboard/DropdownSettings";
 
 export default async function Home() {
   const session = await getServerSession(authOptions);
@@ -21,6 +22,7 @@ export default async function Home() {
   }
 
   const stats = await getComprehensiveStatistics(userProfile!);
+
   const recentEntries = userProfile 
   ? await getRecentJournalEntries(userProfile, 5)
   : [];
@@ -32,6 +34,7 @@ export default async function Home() {
           <div className="max-w-6xl mx-auto">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-semibold text-secondary-foreground">Dashboard</h2>
+              <DropdownMenuCheckboxes />
             </div>
             <StatsOverview stats={stats} />
             <div className="mt-8">
