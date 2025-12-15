@@ -4,9 +4,23 @@ import type { ComprehensiveStats } from "@/lib/journalStore";
 import type { StatKey, StatConfig } from "@/types/stats";
 import { STAT_DEFINITIONS } from "@/types/stats";
 import { useStatsPreferences } from "@/hooks/useStatsPreferences";
-import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardAction,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Info } from "lucide-react";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { ChartPieSeparatorNone } from "../charts/GivsNoGiPieChart";
+import { ChartBarMixed } from "../charts/StatsBarChart";
+import { ChartLineDefault } from "../charts/StatsLineChart";
 
 interface StatsOverviewProps {
   stats: ComprehensiveStats;
@@ -15,70 +29,28 @@ interface StatsOverviewProps {
 export function StatsOverview({ stats }: StatsOverviewProps) {
   const { enabledStats } = useStatsPreferences();
 
-  const visibleStats = STAT_DEFINITIONS.filter((def) => enabledStats.includes(def.key));
+  const visibleStats = STAT_DEFINITIONS.filter((def) =>
+    enabledStats.includes(def.key)
+  );
 
   const renderStatValue = (statKey: StatKey) => {
     switch (statKey) {
       case "totalSessions":
         return (
-          <p className="text-3xl font-bold text-blue-600">
+          <p className="text-3xl font-bold text-primary">
             {stats.totalSessions}
           </p>
         );
       case "totalTimeTrained":
         return (
-          <p className="text-3xl font-bold text-purple-600">
+          <p className="text-3xl font-bold text-primary">
             {stats.totalTimeTrained}
           </p>
         );
       case "sessionsThisMonth":
         return (
-          <p className="text-3xl font-bold text-green-600">
+          <p className="text-3xl font-bold text-primary">
             {stats.sessionsThisMonth}
-          </p>
-        );
-      case "giVsNoGi":
-        return (
-          <div className="text-center">
-            <p className="text-2xl font-bold text-blue-600">
-              {stats.giVsNoGi.gi} / {stats.giVsNoGi.noGi}
-            </p>
-            <p className="text-xs text-gray-500 mt-1">
-              {stats.giVsNoGi.percentage.gi}% Gi ·{" "}
-              {stats.giVsNoGi.percentage.noGi}% NoGi
-            </p>
-          </div>
-        );
-      case "mostCommonPartner":
-        return stats.mostCommonPartner ? (
-          <div className="text-center">
-            <p className="text-2xl font-bold text-teal-600">
-              {stats.mostCommonPartner.name}
-            </p>
-            <p className="text-xs text-gray-500 mt-1">
-              {stats.mostCommonPartner.count} sessions
-            </p>
-          </div>
-        ) : (
-          <p className="text-lg text-gray-400">No data</p>
-        );
-      case "mostCommonArea":
-        return stats.mostCommonArea ? (
-          <div className="text-center">
-            <p className="text-2xl font-bold text-amber-600">
-              {stats.mostCommonArea.area}
-            </p>
-            <p className="text-xs text-gray-500 mt-1">
-              {stats.mostCommonArea.count} times
-            </p>
-          </div>
-        ) : (
-          <p className="text-lg text-gray-400">No data</p>
-        );
-      case "trainingFrequency":
-        return (
-          <p className="text-3xl font-bold text-pink-600">
-            {stats.trainingFrequency}
           </p>
         );
     }
@@ -99,18 +71,55 @@ export function StatsOverview({ stats }: StatsOverviewProps) {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {visibleStats.map((stat) => {
+            const statKey = stat.key
             const config = getStatConfig(stat.key);
+            switch (statKey) {
+              case "mostCommonArea":
+                return stats.mostCommonArea ? (
+                  <ChartBarMixed
+                    title="Most Common Area"
+                    description="Top 5 areas trained"
+                    key={statKey}
+                    data={stats.top5areas}
+                  />
+                ) : (
+                  <p className="text-lg text-gray-400">No data</p>
+                );
+              case "mostCommonPartner":
+                return stats.mostCommonPartner ? (
+                  <ChartBarMixed
+                    title="Frequent Training Partners"
+                    description="Top 5 partners"
+                    key={statKey}
+                    data={stats.top5partners}
+                  />
+                ) : (
+                  <p className="text-lg text-gray-400">No data</p>
+                );
+              case "giVsNoGi":
+                return stats.giVsNoGi ? (
+                  <ChartPieSeparatorNone key={statKey} value={stats.giVsNoGi} />
+                ) : (
+                  <p className="text-lg text-gray-400">No data</p>
+                );
+              case "trainingFrequency":
+                return stats.trainingFrequency ? (
+                  <ChartLineDefault
+                    title="Training Frequency"
+                    description="Training frequency per month"
+                    key={statKey}
+                    data={stats.sessionsPerMonthArray}
+                  />
+                ) : (
+                  <p className="text-lg text-gray-400">No data</p>
+                );
+            }
             if (!config) return null;
-
             return (
               <Card key={stat.key}>
                 <CardHeader>
-                  <CardTitle>
-                    {config.label}
-                  </CardTitle>
-                  <CardDescription>
-                  {renderStatValue(stat.key)}
-                  </CardDescription>
+                  <CardTitle>{config.label}</CardTitle>
+                  <CardDescription>{renderStatValue(stat.key)}</CardDescription>
                   <CardAction>
                     <TooltipProvider>
                       <Tooltip>
@@ -118,15 +127,14 @@ export function StatsOverview({ stats }: StatsOverviewProps) {
                           <Info className="w-4 h-4" />
                         </TooltipTrigger>
                         <TooltipContent>
-                          <p className="text-sm text-primary-foreground">{config.description}</p>
+                          <p className="text-sm text-primary-foreground">
+                            {config.description}
+                          </p>
                         </TooltipContent>
                       </Tooltip>
                     </TooltipProvider>
                   </CardAction>
                 </CardHeader>
-                {/* <CardContent>
-                  {renderStatValue(stat.key)}
-                </CardContent> */}
               </Card>
             );
           })}

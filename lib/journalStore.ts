@@ -12,6 +12,7 @@ import { JournalEntryValidation, JournalEntryUpdateValidation } from "@/lib/vali
 import { JournalEntryGiNoGi } from "@/lib/models/JournalEntry";
 import { formatDuration } from "@/lib/utils/time";
 import { SerializedJournalEntry } from "@/types/journalEntries";
+import { format } from "date-fns";
 
 
 const serializeJournalEntry = (journalEntry: any): SerializedJournalEntry => {
@@ -173,8 +174,11 @@ export interface ComprehensiveStats {
     percentage: { gi: number; noGi: number }
   }
   mostCommonPartner: { name: string; count: number } | null
+  top5partners: { name: string; count: number }[]
   mostCommonArea: { area: string; count: number } | null
+  top5areas: { area: string; count: number }[]
   trainingFrequency: number
+  sessionsPerMonthArray: { month: string; sessions: number }[]
   // trainingStreak: number // consecutive weeks
 }
 
@@ -223,9 +227,15 @@ export async function getComprehensiveStatistics(user: StoredUser): Promise<Comp
       })
     }
   })
+
   const mostCommonPartner = Object.entries(partnerCounts)
     .map(([name, count]) => ({ name, count }))
     .sort((a, b) => b.count - a.count)[0] || null
+
+  const top5partners = Object.entries(partnerCounts)
+    .map(([name, count]) => ({ name, count }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 5);
 
   // Most common partner this month
   const monthPartnerCounts: Record<string, number> = {}
@@ -251,6 +261,11 @@ export async function getComprehensiveStatistics(user: StoredUser): Promise<Comp
     .map(([area, count]) => ({ area, count }))
     .sort((a, b) => b.count - a.count)[0] || null
 
+  const top5areas = Object.entries(areaCounts)
+    .map(([area, count]) => ({area, count}))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 5);
+
   if (journalEntries.length === 0) {
     return {
       totalSessions: 0,
@@ -258,8 +273,11 @@ export async function getComprehensiveStatistics(user: StoredUser): Promise<Comp
       sessionsThisMonth: 0,
       giVsNoGi: { gi: 0, noGi: 0, percentage: { gi: 0, noGi: 0 } },
       mostCommonPartner: null,
+      top5partners: [],
       mostCommonArea: null,
+      top5areas: [],
       trainingFrequency: 0,
+      sessionsPerMonthArray: [],
     }
   }
 
@@ -310,14 +328,25 @@ export async function getComprehensiveStatistics(user: StoredUser): Promise<Comp
     }
   }
 
+const sessionsPerMonthArray = Array.from({ length: 6 }, (_, i) => {
+  const date = new Date(now)
+  date.setMonth(now.getMonth() - i)
+  const obj = {month: format(date, "MMMM"), sessions: journalEntries.filter(
+    (entry) => entry.date >= date
+  ).length}
+  return obj
+})
   return {
     totalSessions,
     totalTimeTrained,
     sessionsThisMonth,
     giVsNoGi,
     mostCommonPartner,
+    top5partners,
     mostCommonArea,
+    top5areas,
     trainingFrequency,
+    sessionsPerMonthArray,
     // trainingStreak: streak, //Put this in the navbar?
   }
 }
