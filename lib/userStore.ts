@@ -2,7 +2,7 @@ import bcrypt from "bcryptjs"
 import { connectMongoose } from "@/lib/db"
 import { UserModel, UserBeltLevel, BeltStripe } from "@/lib/models/User"
 import type { UserDocument } from "@/lib/models/User"
-import { ConflictError, NotFoundError, ValidationError } from "@/lib/errors"
+import { ConflictError, NotFoundError } from "@/lib/errors"
 import { JournalEntryModel } from "./models/JournalEntry"
 
 export type StoredUser = {

@@ -1,13 +1,11 @@
 "use client"
 
-import { TrendingUp } from "lucide-react"
 import { Pie, PieChart } from "recharts"
 
 import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
@@ -16,8 +14,6 @@ import {
   ChartTooltip,
   ChartTooltipContent,
   type ChartConfig,
-  ChartLegend,
-    ChartLegendContent,
 } from "@/components/ui/chart"
 
 
@@ -32,13 +28,11 @@ const chartConfig = {
   },
 } satisfies ChartConfig
 
-export function ChartPieSeparatorNone({ value }: { value: any }) {
+export function ChartPieSeparatorNone({ value }: { value: { gi: number, noGi: number } | null }) {
     if (!value) return null;
-    const gi = value?.gi;
-    const noGi = value?.noGi;
     const data = [
-        { name: "Gi", value: gi, fill: "var(--chart-1)" },
-        { name: "No Gi", value: noGi, fill: "var(--chart-2)" },
+        { name: "Gi", value: value.gi, fill: "var(--chart-1)" },
+        { name: "No Gi", value: value.noGi, fill: "var(--chart-2)" },
     ]
   return (
     <Card className="flex flex-col">

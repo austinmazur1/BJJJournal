@@ -9,11 +9,9 @@ import {
   getFeelingEmoji,
   formatJournalGridDate,
   truncateNotes,
-  getGiNoGiGradientClass,
   getJournalEntryTypeBadgeColor,
 } from "@/lib/utils/journalElementsStyling";
 import {
-  JournalEntryGiNoGi,
   JournalEntryType,
 } from "@/lib/models/JournalEntry";
 import { filterJournalEntries } from "@/lib/utils/filterJournalEntries";

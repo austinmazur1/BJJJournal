@@ -1,6 +1,5 @@
 "use client"
 
-import { TrendingUp } from "lucide-react"
 import { Bar, BarChart, XAxis, YAxis } from "recharts"
 
 import {
@@ -17,17 +16,8 @@ import {
   ChartTooltipContent,
   type ChartConfig,
 } from "@/components/ui/chart"
-import test from "node:test"
 
 export const description = "A mixed bar chart"
-
-const chartData = [
-  { browser: "chrome", visitors: 275, fill: "var(--color-chrome)" },
-  { browser: "safari", visitors: 200, fill: "var(--color-safari)" },
-  { browser: "firefox", visitors: 187, fill: "var(--color-firefox)" },
-  { browser: "edge", visitors: 173, fill: "var(--color-edge)" },
-  { browser: "other", visitors: 90, fill: "var(--color-other)" },
-]
 
 const chartConfig = {
   count: {
@@ -63,9 +53,19 @@ const areaColors = [
     "var(--chart-5)"
   ]
 
-export function ChartBarMixed({ title, data, description }: { title: string, description: string, data: any[] }) {
+type ChartBarDataItem = 
+  | { area: string; count: number }
+  | { name: string; count: number }
+
+interface ChartBarMixedProps {
+  title: string
+  description: string
+  data: ChartBarDataItem[]
+}
+
+export function ChartBarMixed({ title, data, description }: ChartBarMixedProps) {
     const colorData = data.map((d, index) => {
-        return {...d,name: d.area || d.name , fill: areaColors[index]}
+        return {...d, name: 'area' in d ? d.area : d.name, fill: areaColors[index]}
     })
 
   return (

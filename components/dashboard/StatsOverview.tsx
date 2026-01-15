@@ -65,7 +65,7 @@ export function StatsOverview({ stats }: StatsOverviewProps) {
       {visibleStats.length === 0 ? (
         <div className="text-center py-8">
           <p className="text-muted-foreground">
-            No stats enabled. Click "Customize" to add stats!
+            No stats enabled. Click &quot;Customize&quot; to add stats!
           </p>
         </div>
       ) : (

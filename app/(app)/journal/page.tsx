@@ -9,7 +9,7 @@ import JournalFilters from "@/components/journal/JournalFilters"
 
 export default async function JournalEntriesPage() {
   const session = await getServerSession(authOptions)
-  const user = await findUserById(session?.user?.id!)
+  const user = await findUserById(session?.user?.id || "")
   
   if (!user) {
     return (

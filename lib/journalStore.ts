@@ -9,15 +9,20 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { NotFoundError } from "@/lib/errors";
 import { JournalEntryValidation, JournalEntryUpdateValidation } from "@/lib/validations/journalEntryValidation";
-import { JournalEntryGiNoGi } from "@/lib/models/JournalEntry";
+import { JournalEntryDocument, JournalEntryGiNoGi } from "@/lib/models/JournalEntry";
 import { formatDuration } from "@/lib/utils/time";
 import { SerializedJournalEntry } from "@/types/journalEntries";
 import { format } from "date-fns";
 
+// Type for lean documents that includes Mongoose timestamps
+type JournalEntryLeanDocument = JournalEntryDocument & {
+  createdAt: Date;
+  updatedAt: Date;
+};
 
-const serializeJournalEntry = (journalEntry: any): SerializedJournalEntry => {
+const serializeJournalEntry = (journalEntry: JournalEntryLeanDocument): SerializedJournalEntry => {
   return {
-    _id: journalEntry._id.toString(),
+    _id: journalEntry._id?.toString() || "",
     userId: journalEntry.userId.toString(),
     date: journalEntry.date.toISOString(),
     duration: journalEntry.duration,
@@ -32,8 +37,8 @@ const serializeJournalEntry = (journalEntry: any): SerializedJournalEntry => {
     otherNotes: journalEntry.otherNotes,
     workOn: journalEntry.workOn,
     partners: journalEntry.partners || [],
-    createdAt: journalEntry.createdAt?.toISOString() || new Date().toISOString(),
-    updatedAt: journalEntry.updatedAt?.toISOString() || new Date().toISOString(),
+    createdAt: journalEntry.createdAt.toISOString(),
+    updatedAt: journalEntry.updatedAt.toISOString(),
   };
 };
 
@@ -64,9 +69,9 @@ export const getJournalEntry = async (
   journalId: string
 ): Promise<SerializedJournalEntry> => {
   await connectMongoose();
-  const journalEntry = (await JournalEntryModel.findById(
+  const journalEntry = await JournalEntryModel.findById(
     journalId
-  ).lean()) as any;
+  ).lean() as unknown as JournalEntryLeanDocument | null;
   if (!journalEntry) {
     throw new NotFoundError("Journal");
   }
@@ -80,9 +85,9 @@ export const getJournalEntries = async (
   await connectMongoose();
   const journalEntries = await JournalEntryModel.find({ userId: user.id })
     .sort({ date: -1 })
-    .lean();
+    .lean() as unknown as JournalEntryLeanDocument[];
 
-  return journalEntries.map((entry: any) => serializeJournalEntry(entry));
+  return journalEntries.map((entry: JournalEntryLeanDocument) => serializeJournalEntry(entry));
 };
 
 export const getRecentJournalEntries = async (
@@ -93,9 +98,9 @@ export const getRecentJournalEntries = async (
   const journalEntries = await JournalEntryModel.find({ userId: user.id })
     .sort({ date: -1 })
     .limit(limit)
-    .lean();
+    .lean() as unknown as JournalEntryLeanDocument[];
 
-  return journalEntries.map((entry: any) => serializeJournalEntry(entry));
+  return journalEntries.map((entry: JournalEntryLeanDocument) => serializeJournalEntry(entry));
 };
 
 export async function createJournalEntryAction(formData: JournalEntryValidation) {
@@ -186,7 +191,7 @@ export async function getComprehensiveStatistics(user: StoredUser): Promise<Comp
   await connectMongoose()
   const journalEntries = await JournalEntryModel.find({ userId: user.id })
     .sort({ date: -1 })
-    .lean()
+    .lean() as unknown as JournalEntryLeanDocument[]
 
   const totalSessions = journalEntries.length
   const totalTimeMinutes = journalEntries.reduce((acc, curr) => acc + (curr.duration || 0), 0)

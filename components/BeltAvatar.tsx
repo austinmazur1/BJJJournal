@@ -3,6 +3,7 @@
 import { UserBeltLevel } from "@/lib/models/User";
 import { getBeltBorderColor } from "@/lib/utils/beltColors";
 import { cn } from "@/lib/utils";
+import Image from "next/image";
 
 interface BeltAvatarProps {
   beltLevel?: UserBeltLevel;
@@ -46,7 +47,9 @@ export function BeltAvatar({
     >
       <div className="absolute inset-0 rounded-full overflow-hidden bg-gradient-to-br from-gray-200 to-gray-300">
         {image ? (
-          <img
+          <Image
+            width={100}
+            height={100}
             src={image}
             alt={name || "Avatar"}
             className="w-full h-full object-cover"

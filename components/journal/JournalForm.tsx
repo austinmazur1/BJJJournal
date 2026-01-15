@@ -108,7 +108,6 @@ export function JournalForm({ serverAction, journalEntry }: JournalFormProps) {
     register,
     handleSubmit,
     formState: { errors },
-    watch,
     setValue,
     control,
   } = useForm<JournalFormData>({

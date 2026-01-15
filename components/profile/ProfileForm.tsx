@@ -45,7 +45,7 @@ export function ProfileForm({ user, onUpdate, onDelete }: ProfileFormProps) {
     watch,
     setValue,
     trigger,
-    formState: { errors, isSubmitting },
+    formState: { isSubmitting },
   } = useForm<ProfileInformationValidation>({
     resolver: zodResolver(profileInformationValidation),
     defaultValues: {

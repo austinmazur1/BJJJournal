@@ -24,7 +24,7 @@ const chartConfig = {
   },
 } satisfies ChartConfig
 
-export function ChartLineDefault({ title, data, description }: { title: string, data: any[], description: string }) {
+export function ChartLineDefault({ title, data, description }: { title: string, data: { month: string, sessions: number }[], description: string }) {
   return (
     <Card>
       <CardHeader>
