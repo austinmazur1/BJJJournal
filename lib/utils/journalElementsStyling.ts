@@ -7,13 +7,13 @@ import {
 export const getTypeBadgeColor = (type: string) => {
   switch (type) {
     case JournalEntryType.CLASS:
-      return "bg-blue-100 text-blue-800 hover:bg-blue-100";
+      return "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800/50";
     case JournalEntryType.OPEN_MAT:
-      return "bg-purple-100 text-purple-800 hover:bg-purple-100";
+      return "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-800/50";
     case JournalEntryType.OTHER:
-      return "bg-gray-100 text-gray-800 hover:bg-gray-100";
+      return "bg-slate-50 text-slate-700 border-slate-200 dark:bg-slate-800/50 dark:text-slate-300 dark:border-slate-700/50";
     default:
-      return "bg-gray-100 text-gray-800 hover:bg-gray-100";
+      return "bg-slate-50 text-slate-700 border-slate-200 dark:bg-slate-800/50 dark:text-slate-300 dark:border-slate-700/50";
   }
 };
 
@@ -34,8 +34,8 @@ export const getFeelingEmoji = (feeling?: string) => {
 
 export const getGiNoGiBadgeColor = (giNoGi: JournalEntryGiNoGi) => {
   return giNoGi === JournalEntryGiNoGi.GI
-    ? "bg-white text-gray-800 border border-gray-300 hover:bg-white"
-    : "bg-gray-800 text-white hover:bg-gray-800";
+    ? "bg-indigo-50 text-indigo-700 border-indigo-200 dark:bg-indigo-950/60 dark:text-indigo-300 dark:border-indigo-800/50"
+    : "bg-violet-50 text-violet-700 border-violet-200 dark:bg-violet-950/60 dark:text-violet-300 dark:border-violet-800/50";
 };
 
 export const formatDate = (date: Date) => {
@@ -67,8 +67,8 @@ export const getGiNoGiGradientClass = (giNoGi: JournalEntryGiNoGi) => {
 
 export const getJournalEntryTypeBadgeColor = (type: JournalEntryType) => {
   return type === JournalEntryType.CLASS
-    ? "bg-green-100 text-green-800 border-green-200"
+    ? "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800/50"
     : type === JournalEntryType.OPEN_MAT
-    ? "bg-orange-100 text-orange-800 border-orange-200"
-    : "bg-gray-100 text-gray-800 border-gray-200";
+    ? "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-800/50"
+    : "bg-slate-50 text-slate-700 border-slate-200 dark:bg-slate-800/50 dark:text-slate-300 dark:border-slate-700/50";
 };

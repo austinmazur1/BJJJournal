@@ -9,14 +9,20 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { NotFoundError } from "@/lib/errors";
 import { JournalEntryValidation, JournalEntryUpdateValidation } from "@/lib/validations/journalEntryValidation";
-import { JournalEntryGiNoGi } from "@/lib/models/JournalEntry";
+import { JournalEntryDocument, JournalEntryGiNoGi } from "@/lib/models/JournalEntry";
 import { formatDuration } from "@/lib/utils/time";
 import { SerializedJournalEntry } from "@/types/journalEntries";
+import { format } from "date-fns";
 
+// Type for lean documents that includes Mongoose timestamps
+type JournalEntryLeanDocument = JournalEntryDocument & {
+  createdAt: Date;
+  updatedAt: Date;
+};
 
-const serializeJournalEntry = (journalEntry: any): SerializedJournalEntry => {
+const serializeJournalEntry = (journalEntry: JournalEntryLeanDocument): SerializedJournalEntry => {
   return {
-    _id: journalEntry._id.toString(),
+    _id: journalEntry._id?.toString() || "",
     userId: journalEntry.userId.toString(),
     date: journalEntry.date.toISOString(),
     duration: journalEntry.duration,
@@ -31,8 +37,8 @@ const serializeJournalEntry = (journalEntry: any): SerializedJournalEntry => {
     otherNotes: journalEntry.otherNotes,
     workOn: journalEntry.workOn,
     partners: journalEntry.partners || [],
-    createdAt: journalEntry.createdAt?.toISOString() || new Date().toISOString(),
-    updatedAt: journalEntry.updatedAt?.toISOString() || new Date().toISOString(),
+    createdAt: journalEntry.createdAt.toISOString(),
+    updatedAt: journalEntry.updatedAt.toISOString(),
   };
 };
 
@@ -63,9 +69,9 @@ export const getJournalEntry = async (
   journalId: string
 ): Promise<SerializedJournalEntry> => {
   await connectMongoose();
-  const journalEntry = (await JournalEntryModel.findById(
+  const journalEntry = await JournalEntryModel.findById(
     journalId
-  ).lean()) as any;
+  ).lean() as unknown as JournalEntryLeanDocument | null;
   if (!journalEntry) {
     throw new NotFoundError("Journal");
   }
@@ -79,9 +85,9 @@ export const getJournalEntries = async (
   await connectMongoose();
   const journalEntries = await JournalEntryModel.find({ userId: user.id })
     .sort({ date: -1 })
-    .lean();
+    .lean() as unknown as JournalEntryLeanDocument[];
 
-  return journalEntries.map((entry: any) => serializeJournalEntry(entry));
+  return journalEntries.map((entry: JournalEntryLeanDocument) => serializeJournalEntry(entry));
 };
 
 export const getRecentJournalEntries = async (
@@ -92,9 +98,9 @@ export const getRecentJournalEntries = async (
   const journalEntries = await JournalEntryModel.find({ userId: user.id })
     .sort({ date: -1 })
     .limit(limit)
-    .lean();
+    .lean() as unknown as JournalEntryLeanDocument[];
 
-  return journalEntries.map((entry: any) => serializeJournalEntry(entry));
+  return journalEntries.map((entry: JournalEntryLeanDocument) => serializeJournalEntry(entry));
 };
 
 export async function createJournalEntryAction(formData: JournalEntryValidation) {
@@ -167,34 +173,29 @@ export interface ComprehensiveStats {
   totalSessions: number
   totalTimeTrained: string
   sessionsThisMonth: number
-  sessionsThisWeek: number
-  averageDuration: string
   giVsNoGi: {
     gi: number
     noGi: number
     percentage: { gi: number; noGi: number }
   }
   mostCommonPartner: { name: string; count: number } | null
-  mostCommonPartnerThisMonth: { name: string; count: number } | null
+  top5partners: { name: string; count: number }[]
   mostCommonArea: { area: string; count: number } | null
-  trainingFrequency: number // sessions per week
-  mostCommonType: { type: string; count: number } | null
-  favoriteLocation: { location: string; count: number } | null
-  mostCommonProfessor: { professor: string; count: number } | null
-  trainingStreak: number // consecutive weeks
+  top5areas: { area: string; count: number }[]
+  trainingFrequency: number
+  sessionsPerMonthArray: { month: string; sessions: number }[]
+  // trainingStreak: number // consecutive weeks
 }
 
 export async function getComprehensiveStatistics(user: StoredUser): Promise<ComprehensiveStats> {
   await connectMongoose()
   const journalEntries = await JournalEntryModel.find({ userId: user.id })
     .sort({ date: -1 })
-    .lean()
+    .lean() as unknown as JournalEntryLeanDocument[]
 
   const totalSessions = journalEntries.length
   const totalTimeMinutes = journalEntries.reduce((acc, curr) => acc + (curr.duration || 0), 0)
   const totalTimeTrained = formatDuration(totalTimeMinutes)
-  const averageDurationMinutes = totalSessions > 0 ? totalTimeMinutes / totalSessions : 0
-  const averageDuration = formatDuration(Math.round(averageDurationMinutes))
 
   const now = new Date()
   const currentMonth = now.getMonth()
@@ -206,10 +207,6 @@ export async function getComprehensiveStatistics(user: StoredUser): Promise<Comp
 
   const sessionsThisMonth = journalEntries.filter(
     (entry) => entry.date >= startOfMonth
-  ).length
-
-  const sessionsThisWeek = journalEntries.filter(
-    (entry) => entry.date >= startOfWeek
   ).length
 
   const giCount = journalEntries.filter((e) => e.giNoGi === JournalEntryGiNoGi.GI).length
@@ -235,9 +232,15 @@ export async function getComprehensiveStatistics(user: StoredUser): Promise<Comp
       })
     }
   })
+
   const mostCommonPartner = Object.entries(partnerCounts)
     .map(([name, count]) => ({ name, count }))
     .sort((a, b) => b.count - a.count)[0] || null
+
+  const top5partners = Object.entries(partnerCounts)
+    .map(([name, count]) => ({ name, count }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 5);
 
   // Most common partner this month
   const monthPartnerCounts: Record<string, number> = {}
@@ -252,9 +255,6 @@ export async function getComprehensiveStatistics(user: StoredUser): Promise<Comp
         })
       }
     })
-  const mostCommonPartnerThisMonth = Object.entries(monthPartnerCounts)
-    .map(([name, count]) => ({ name, count }))
-    .sort((a, b) => b.count - a.count)[0] || null
 
   const areaCounts: Record<string, number> = {}
   journalEntries.forEach((entry) => {
@@ -266,22 +266,23 @@ export async function getComprehensiveStatistics(user: StoredUser): Promise<Comp
     .map(([area, count]) => ({ area, count }))
     .sort((a, b) => b.count - a.count)[0] || null
 
+  const top5areas = Object.entries(areaCounts)
+    .map(([area, count]) => ({area, count}))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 5);
+
   if (journalEntries.length === 0) {
     return {
       totalSessions: 0,
       totalTimeTrained: "0m",
       sessionsThisMonth: 0,
-      sessionsThisWeek: 0,
-      averageDuration: "0m",
       giVsNoGi: { gi: 0, noGi: 0, percentage: { gi: 0, noGi: 0 } },
       mostCommonPartner: null,
-      mostCommonPartnerThisMonth: null,
+      top5partners: [],
       mostCommonArea: null,
+      top5areas: [],
       trainingFrequency: 0,
-      mostCommonType: null,
-      favoriteLocation: null,
-      mostCommonProfessor: null,
-      trainingStreak: 0,
+      sessionsPerMonthArray: [],
     }
   }
 
@@ -299,9 +300,6 @@ export async function getComprehensiveStatistics(user: StoredUser): Promise<Comp
       typeCounts[entry.type] = (typeCounts[entry.type] || 0) + 1
     }
   })
-  const mostCommonType = Object.entries(typeCounts)
-    .map(([type, count]) => ({ type, count }))
-    .sort((a, b) => b.count - a.count)[0] || null
 
   const locationCounts: Record<string, number> = {}
   journalEntries.forEach((entry) => {
@@ -309,9 +307,6 @@ export async function getComprehensiveStatistics(user: StoredUser): Promise<Comp
       locationCounts[entry.location] = (locationCounts[entry.location] || 0) + 1
     }
   })
-  const favoriteLocation = Object.entries(locationCounts)
-    .map(([location, count]) => ({ location, count }))
-    .sort((a, b) => b.count - a.count)[0] || null
 
   const professorCounts: Record<string, number> = {}
   journalEntries.forEach((entry) => {
@@ -319,9 +314,6 @@ export async function getComprehensiveStatistics(user: StoredUser): Promise<Comp
       professorCounts[entry.professor.trim()] = (professorCounts[entry.professor.trim()] || 0) + 1
     }
   })
-  const mostCommonProfessor = Object.entries(professorCounts)
-    .map(([professor, count]) => ({ professor, count }))
-    .sort((a, b) => b.count - a.count)[0] || null
 
   let streak = 0
   const sessionsByWeek: Set<string> = new Set()
@@ -341,21 +333,26 @@ export async function getComprehensiveStatistics(user: StoredUser): Promise<Comp
     }
   }
 
+const sessionsPerMonthArray = Array.from({ length: 6 }, (_, i) => {
+  const date = new Date(now)
+  date.setMonth(now.getMonth() - i)
+  const obj = {month: format(date, "MMMM"), sessions: journalEntries.filter(
+    (entry) => entry.date >= date
+  ).length}
+  return obj
+})
   return {
     totalSessions,
     totalTimeTrained,
     sessionsThisMonth,
-    sessionsThisWeek,
-    averageDuration,
     giVsNoGi,
     mostCommonPartner,
-    mostCommonPartnerThisMonth,
+    top5partners,
     mostCommonArea,
+    top5areas,
     trainingFrequency,
-    mostCommonType,
-    favoriteLocation,
-    mostCommonProfessor,
-    trainingStreak: streak,
+    sessionsPerMonthArray,
+    // trainingStreak: streak, //Put this in the navbar?
   }
 }
 

@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth";
 import SignUpForm from "@/components/credentials/SignUpForm";
 import { SignInButton } from "@/components/auth-buttons";
 import Link from "next/link";
+import { Separator } from "@/components/ui/separator";
 
 export default async function SignUpPage() {
   const session = await getServerSession(authOptions);
@@ -12,15 +13,15 @@ export default async function SignUpPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-6">
-      <div className="w-full max-w-sm rounded border p-6 flex flex-col gap-4">
-        <h1 className="text-xl font-semibold">Create your account</h1>
-        <p className="text-sm text-gray-600">Use your Google account to continue.</p>
+    <div className="min-h-screen bg-background flex items-center justify-center p-6">
+      <div className="w-full max-w-sm rounded-xl border p-6 flex flex-col gap-4">
+        <h1 className="text-xl font-semibold text-secondary-foreground">Create your account</h1>
+        <p className="text-sm text-muted-foreground">Use your Google account to continue.</p>
         <SignInButton />
-        <div className="h-px bg-gray-200" />
-        <p className="text-sm text-gray-600">Or create with email and password</p>
+        <Separator />
+        <p className="text-sm text-muted-foreground">Or create with email and password</p>
         <SignUpForm />
-        <p className="text-sm text-gray-600">
+        <p className="text-sm text-muted-foreground">
           Already have an account? <Link className="underline" href="/signin">Sign in</Link>
         </p>
       </div>

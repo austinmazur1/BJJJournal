@@ -15,7 +15,7 @@ export default function JournalDetailFooter({
   const router = useRouter();
   const { _id, createdAt, updatedAt } = journalEntry;
   return (
-    <div className="border-t border-gray-200 bg-gray-50 px-6 py-4">
+    <div className="border-t border-border p-6">
       <div className="flex flex-col sm:flex-row gap-3 justify-between items-center">
         <p className="text-sm text-gray-500">
           Created {new Date(createdAt).toLocaleDateString()}

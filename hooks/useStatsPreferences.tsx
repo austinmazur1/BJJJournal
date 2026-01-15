@@ -1,10 +1,20 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, createContext, useContext, type ReactNode } from "react"
 import type { StatKey } from "@/types/stats"
 import { DEFAULT_ENABLED_STATS } from "@/types/stats"
 
 const STORAGE_KEY = "bjj-journal-stats-preferences"
+
+// Define the context shape
+interface StatsPreferencesContextType {
+  enabledStats: StatKey[]
+  updateEnabledStats: (stats: StatKey[]) => void
+  toggleStat: (statKey: StatKey) => void
+  isLoading: boolean
+}
+
+const StatsPreferencesContext = createContext<StatsPreferencesContextType | undefined>(undefined)
 
 function getFromStorage(): StatKey[] | null {
   if (typeof window === "undefined") return null
@@ -33,10 +43,11 @@ function saveToStorage(stats: StatKey[]): void {
   }
 }
 
-export function useStatsPreferences() {
+export function StatsPreferencesProvider({ children }: { children: ReactNode }) {
   const [enabledStats, setEnabledStats] = useState<StatKey[]>(DEFAULT_ENABLED_STATS)
   const [isLoading, setIsLoading] = useState(true)
 
+  // Load from storage on mount
   useEffect(() => {
     const stored = getFromStorage()
     if (stored) {
@@ -45,6 +56,7 @@ export function useStatsPreferences() {
     setIsLoading(false)
   }, [])
 
+  // Save to storage whenever enabledStats changes
   useEffect(() => {
     if (!isLoading) {
       saveToStorage(enabledStats)
@@ -64,10 +76,25 @@ export function useStatsPreferences() {
     })
   }
 
-  return {
-    enabledStats,
-    updateEnabledStats,
-    toggleStat,
-    isLoading,
+  return (
+    <StatsPreferencesContext.Provider 
+      value={{ 
+        enabledStats, 
+        updateEnabledStats, 
+        toggleStat, 
+        isLoading 
+      }}
+    >
+      {children}
+    </StatsPreferencesContext.Provider>
+  )
+}
+
+// The hook now consumes the context instead of creating new state
+export function useStatsPreferences() {
+  const context = useContext(StatsPreferencesContext)
+  if (context === undefined) {
+    throw new Error("useStatsPreferences must be used within a StatsPreferencesProvider")
   }
+  return context
 }

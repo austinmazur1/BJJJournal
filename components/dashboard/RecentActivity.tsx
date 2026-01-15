@@ -20,10 +20,10 @@ export function RecentActivity({ entries }: RecentActivityProps) {
         </CardHeader>
         <CardContent>
           <div className="text-center py-8">
-            <p className="text-gray-500 mb-4">No recent entries yet</p>
+            <p className="text-muted-foreground mb-4">No recent entries yet</p>
             <Link
               href="/journal/new"
-              className="inline-flex items-center gap-2 text-sm text-blue-600 hover:text-blue-700 font-medium"
+              className="inline-flex items-center gap-2 text-sm text-primary hover:text-primary/80 font-medium"
             >
               Create your first entry
               <ArrowRight className="h-4 w-4" />
@@ -69,12 +69,18 @@ export function RecentActivity({ entries }: RecentActivityProps) {
   const getTypeBadgeColor = (type: string) => {
     switch (type) {
       case "Class":
-        return "bg-green-100 text-green-800 border-green-200"
+        return "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800/50"
       case "Open Mat":
-        return "bg-orange-100 text-orange-800 border-orange-200"
+        return "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-800/50"
       default:
-        return "bg-gray-100 text-gray-800 border-gray-200"
+        return "bg-slate-50 text-slate-700 border-slate-200 dark:bg-slate-800/50 dark:text-slate-300 dark:border-slate-700/50"
     }
+  }
+
+  const getGiNoGiBadgeColor = (giNoGi: string) => {
+    return giNoGi === "Gi"
+      ? "bg-indigo-50 text-indigo-700 border-indigo-200 dark:bg-indigo-950/60 dark:text-indigo-300 dark:border-indigo-800/50"
+      : "bg-violet-50 text-violet-700 border-violet-200 dark:bg-violet-950/60 dark:text-violet-300 dark:border-violet-800/50"
   }
 
   return (
@@ -88,7 +94,7 @@ export function RecentActivity({ entries }: RecentActivityProps) {
           {entries.length > 0 && (
             <Link
               href="/journal"
-              className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+              className="text-sm text-primary hover:text-primary/80 font-medium"
             >
               View all
             </Link>
@@ -101,34 +107,34 @@ export function RecentActivity({ entries }: RecentActivityProps) {
             <Link
               key={entry._id}
               href={`/journal/${entry._id}`}
-              className="block p-4 rounded-lg border border-gray-200 hover:border-blue-300 hover:bg-blue-50/50 transition-all group"
+              className="block p-4 rounded-lg border border-border hover:border-primary hover:bg-accent transition-all group"
             >
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1 min-w-0">
                   {/* Date and Type */}
                   <div className="flex items-center gap-3 mb-2">
-                    <div className="flex items-center gap-1.5 text-sm text-gray-600">
+                    <div className="flex items-center gap-1.5 text-sm text-primary">
                       <Calendar className="h-4 w-4" />
-                      <span className="font-medium">{formatDate(entry.date)}</span>
+                      <span className="font-semibold">{formatDate(entry.date)}</span>
                     </div>
                     <Badge variant="outline" className={`text-xs ${getTypeBadgeColor(entry.type)}`}>
                       {entry.type}
                     </Badge>
                     {entry.feeling && (
-                      <span className="text-xs text-gray-500">
+                      <span className="text-xs text-muted-foreground">
                         {getFeelingEmoji(entry.feeling)} {entry.feeling}
                       </span>
                     )}
                   </div>
 
                   {/* Duration and Location */}
-                  <div className="flex items-center gap-4 text-sm text-gray-600 mb-2">
-                    <div className="flex items-center gap-1.5">
+                  <div className="flex items-center gap-4 text-sm mb-2">
+                    <div className="flex items-center gap-1.5 text-primary font-medium">
                       <Clock className="h-3.5 w-3.5" />
                       <span>{entry.duration} min</span>
                     </div>
                     {entry.location && (
-                      <div className="flex items-center gap-1.5">
+                      <div className="flex items-center gap-1.5 text-muted-foreground">
                         <MapPin className="h-3.5 w-3.5" />
                         <span className="truncate">{entry.location}</span>
                       </div>
@@ -139,16 +145,15 @@ export function RecentActivity({ entries }: RecentActivityProps) {
                   <div className="flex items-center gap-2">
                     <Badge
                       variant="outline"
-                      className={
-                        entry.giNoGi === "Gi"
-                          ? "bg-blue-100 text-blue-800 border-blue-300 text-xs"
-                          : "bg-purple-100 text-purple-800 border-purple-300 text-xs"
-                      }
+                      className={`text-xs ${getGiNoGiBadgeColor(entry.giNoGi)}`}
                     >
                       {entry.giNoGi}
                     </Badge>
                     {entry.area && (
-                      <Badge variant="outline" className="bg-amber-100 text-amber-800 border-amber-200 text-xs">
+                      <Badge 
+                        variant="outline" 
+                        className="text-xs bg-slate-50 text-slate-700 border-slate-200 dark:bg-slate-800/50 dark:text-slate-300 dark:border-slate-700/50"
+                      > 
                         {entry.area}
                       </Badge>
                     )}
@@ -156,14 +161,14 @@ export function RecentActivity({ entries }: RecentActivityProps) {
 
                   {/* Notes Preview */}
                   {entry.depthNotes && (
-                    <p className="text-sm text-gray-600 mt-2 line-clamp-2">
+                    <p className="text-sm text-muted-foreground mt-2 line-clamp-2">
                       {entry.depthNotes}
                     </p>
                   )}
                 </div>
 
                 {/* Arrow Icon */}
-                <ArrowRight className="h-5 w-5 text-gray-400 group-hover:text-blue-600 transition-colors flex-shrink-0" />
+                <ArrowRight className="h-5 w-5 text-muted-foreground group-hover:text-foreground transition-colors flex-shrink-0" />
               </div>
             </Link>
           ))}

@@ -7,6 +7,7 @@ import Link from "next/link";
 import { getComprehensiveStatistics, getRecentJournalEntries } from "@/lib/journalStore";
 import { Plus } from "lucide-react";
 import { RecentActivity } from "@/components/dashboard/RecentActivity";
+import { DropdownMenuCheckboxes } from "@/components/dashboard/DropdownSettings";
 
 export default async function Home() {
   const session = await getServerSession(authOptions);
@@ -21,21 +22,22 @@ export default async function Home() {
   }
 
   const stats = await getComprehensiveStatistics(userProfile!);
+
   const recentEntries = userProfile 
   ? await getRecentJournalEntries(userProfile, 5)
   : [];
 
   return (
     <OnboardingGuard userProfile={userProfile}>
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-background">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="max-w-6xl mx-auto">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-lg font-semibold text-gray-900">Quick Actions</h2>
+              <h2 className="text-xl font-semibold text-secondary-foreground">Dashboard</h2>
+              <DropdownMenuCheckboxes />
             </div>
             <StatsOverview stats={stats} />
             <div className="mt-8">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">Recent Activity</h2>
               <RecentActivity entries={recentEntries} />
             </div>
           </div>
@@ -43,7 +45,7 @@ export default async function Home() {
         {/* Floating Action Button for Mobile */}
         <Link
           href="/journal/new"
-          className="fixed bottom-6 right-6 sm:hidden h-14 w-14 rounded-full bg-blue-600 text-white shadow-lg hover:bg-blue-700 flex items-center justify-center transition-all hover:scale-110 z-50"
+          className="fixed bottom-6 right-6 sm:hidden h-14 w-14 rounded-full bg-primary text-primary-foreground shadow-lg hover:bg-primary/90 flex items-center justify-center transition-all hover:scale-110 z-50"
           aria-label="New Entry"
         >
           <Plus className="h-6 w-6" />

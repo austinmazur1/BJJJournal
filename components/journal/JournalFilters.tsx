@@ -42,10 +42,10 @@ export default function JournalFilters() {
     filters.feeling !== "all";
 
   return (
-    <div className="pb-4 border-b border-gray-200">
+    <div className="pb-4 border-b border-border">
       <div className="flex flex-row items-end gap-4 flex-wrap">
         <div className="relative flex-1 min-w-[200px]">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4" />
           <Input
             type="text"
             placeholder="Search by notes, location, professor, or partners..."
@@ -56,7 +56,7 @@ export default function JournalFilters() {
           {filters.search && (
             <button
               onClick={() => setFilters({ search: "" })}
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 hover:text-foreground"
               aria-label="Clear search"
             >
               <X className="h-4 w-4" />

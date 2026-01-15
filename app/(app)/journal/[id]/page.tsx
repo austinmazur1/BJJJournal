@@ -9,7 +9,7 @@ import {
   getGiNoGiBadgeColor,
   formatDate,
 } from "@/lib/utils/journalElementsStyling";
-
+import { cn } from "@/lib/utils";
 import { ArrowLeft, MapPin, User, Users, FileText, HelpCircle, Target, StickyNote } from "lucide-react";
 
 export default async function JournalEntryPage({
@@ -21,53 +21,53 @@ export default async function JournalEntryPage({
   const journalEntry = await getJournalEntry(id);
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="min-h-screen bg-background py-8">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-6">
           <Link
             href="/journal"
-            className="inline-flex items-center text-gray-600 hover:text-gray-900 transition-colors mb-4"
+            className="inline-flex items-center text-muted-foreground hover:text-foreground transition-colors mb-4"
           >
             <ArrowLeft className="w-5 h-5 mr-2" />
             Back to Journal
           </Link>
         </div>
 
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-          <div className="border-b border-gray-200 bg-gradient-to-br from-blue-50 to-white p-6">
+        <div className="bg-card rounded-lg shadow-sm border border-border overflow-hidden">
+          <div className="border-b border-border p-6">
             <div className="flex flex-wrap gap-2 mb-3">
-              <Badge className={getTypeBadgeColor(journalEntry.type)}>
+              <Badge className={cn(getTypeBadgeColor(journalEntry.type), "hover:cursor-default")}>
                 {journalEntry.type}
               </Badge>
               <Badge
-                className={getGiNoGiBadgeColor(
+                className={cn(getGiNoGiBadgeColor(
                   journalEntry.giNoGi as JournalEntryGiNoGi
-                )}
+                ), "hover:cursor-default")}
               >
                 {journalEntry.giNoGi}
               </Badge>
-              <Badge className="bg-gray-100 text-gray-700 hover:bg-gray-100">
+              <Badge className="bg-card-foreground text-primary-foreground hover:bg-card-foreground/50 hover:cursor-default">
                 {journalEntry.duration} min
               </Badge>
-              <Badge className="bg-orange-100 text-orange-800 hover:bg-orange-100">
+              <Badge className="bg-card-foreground text-primary-foreground hover:bg-card-foreground/50 hover:cursor-default">
                 {journalEntry.area}
               </Badge>
             </div>
 
-            <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
+            <h1 className="text-2xl md:text-3xl font-bold text-primary mb-2">
               {formatDate(new Date(journalEntry.date))}
             </h1>
 
-            <div className="space-y-1 text-gray-700">
+            <div className="space-y-1 text-secondary-foreground">
               <p className="flex items-center">
-                <MapPin className="w-5 h-5 mr-2 text-gray-500" />
+                <MapPin className="w-5 h-5 mr-2 text-muted-foreground" />
                 <span className="font-medium">Training at:</span>
                 <span className="ml-2">{journalEntry.location}</span>
               </p>
 
               {journalEntry.professor && (
                 <p className="flex items-center">
-                  <User className="w-5 h-5 mr-2 text-gray-500" />
+                  <User className="w-5 h-5 mr-2 text-muted-foreground" />
                   <span className="font-medium">Instructor:</span>
                   <span className="ml-2">{journalEntry.professor}</span>
                 </p>
@@ -88,7 +88,7 @@ export default async function JournalEntryPage({
           <div className="p-6 space-y-6">
             {journalEntry.partners && journalEntry.partners.length > 0 && (
               <section>
-                <h2 className="text-lg font-semibold text-gray-900 mb-3 flex items-center">
+                <h2 className="text-lg font-semibold text-primary mb-3 flex items-center">
                   <Users className="w-5 h-5 mr-2 text-gray-600" />
                   Training Partners
                 </h2>
@@ -96,7 +96,7 @@ export default async function JournalEntryPage({
                   {journalEntry.partners.map((partner, index) => (
                     <Badge
                       key={index}
-                      className="bg-blue-50 text-blue-700 hover:bg-blue-50 text-sm px-3 py-1"
+                      className="bg-card-foreground text-primary-foreground hover:bg-card-foreground/50 text-sm px-3 py-1"
                     >
                       {partner}
                     </Badge>
@@ -106,12 +106,12 @@ export default async function JournalEntryPage({
             )}
 
             <section>
-              <h2 className="text-lg font-semibold text-gray-900 mb-3 flex items-center">
-                <FileText className="w-5 h-5 mr-2 text-gray-600" />
+              <h2 className="text-lg font-semibold text-primary mb-3 flex items-center">
+                <FileText className="w-5 h-5 mr-2 text-muted-foreground" />
                 Session Notes
               </h2>
-              <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-                <p className="text-gray-800 leading-relaxed whitespace-pre-wrap">
+              <div className="bg-card text-primary-foreground rounded-lg p-4 border border-border">
+                <p className="text-secondary-foreground leading-relaxed whitespace-pre-wrap">
                   {journalEntry.depthNotes}
                 </p>
               </div>
@@ -119,12 +119,12 @@ export default async function JournalEntryPage({
 
             {journalEntry.questions && journalEntry.questions.trim() && (
               <section>
-                <h2 className="text-lg font-semibold text-gray-900 mb-3 flex items-center">
-                  <HelpCircle className="w-5 h-5 mr-2 text-gray-600" />
+                <h2 className="text-lg font-semibold text-primary mb-3 flex items-center">
+                  <HelpCircle className="w-5 h-5 mr-2 text-muted-foreground" />
                   Questions & Things to Ask
                 </h2>
-                <div className="bg-yellow-50 rounded-lg p-4 border border-yellow-200">
-                  <p className="text-gray-800 leading-relaxed whitespace-pre-wrap">
+                <div className="bg-card text-primary-foreground rounded-lg p-4 border border-border">
+                  <p className="text-secondary-foreground leading-relaxed whitespace-pre-wrap">
                     {journalEntry.questions}
                   </p>
                 </div>
@@ -133,12 +133,12 @@ export default async function JournalEntryPage({
 
             {journalEntry.workOn && journalEntry.workOn.trim() && (
               <section>
-                <h2 className="text-lg font-semibold text-gray-900 mb-3 flex items-center">
-                  <Target className="w-5 h-5 mr-2 text-gray-600" />
+                <h2 className="text-lg font-semibold text-primary mb-3 flex items-center">
+                  <Target className="w-5 h-5 mr-2 text-muted-foreground" />
                   What to Work On Next
                 </h2>
-                <div className="bg-green-50 rounded-lg p-4 border border-green-200">
-                  <p className="text-gray-800 leading-relaxed whitespace-pre-wrap">
+                <div className="bg-card text-primary-foreground rounded-lg p-4 border border-border">
+                  <p className="text-secondary-foreground leading-relaxed whitespace-pre-wrap">
                     {journalEntry.workOn}
                   </p>
                 </div>
@@ -147,12 +147,12 @@ export default async function JournalEntryPage({
 
             {journalEntry.otherNotes && journalEntry.otherNotes.trim() && (
               <section>
-                <h2 className="text-lg font-semibold text-gray-900 mb-3 flex items-center">
-                  <StickyNote className="w-5 h-5 mr-2 text-gray-600" />
+                <h2 className="text-lg font-semibold text-primary mb-3 flex items-center">
+                  <StickyNote className="w-5 h-5 mr-2 text-muted-foreground" />
                   Additional Notes
                 </h2>
-                <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-                  <p className="text-gray-800 leading-relaxed whitespace-pre-wrap">
+                <div className="bg-card text-primary-foreground rounded-lg p-4 border border-border">
+                  <p className="text-secondary-foreground leading-relaxed whitespace-pre-wrap">
                     {journalEntry.otherNotes}
                   </p>
                 </div>

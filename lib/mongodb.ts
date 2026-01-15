@@ -1,7 +1,6 @@
 import { MongoClient } from "mongodb"
 
 declare global {
-  // eslint-disable-next-line no-var
   var __mongoClient: { client: MongoClient | null; promise: Promise<MongoClient> | null } | undefined
 }
 
