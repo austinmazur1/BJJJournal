@@ -1,0 +1,113 @@
+"use client";
+
+import Link from "next/link";
+import { useSession } from "next-auth/react";
+import { usePathname } from "next/navigation";
+import { useState, useRef, useEffect } from "react";
+import { BeltAvatar } from "@/components/BeltAvatar";
+import type { StoredUser } from "@/lib/userStore";
+import { ChevronDown, Plus } from "lucide-react";
+import DropdownMenu from "@/components/header/DropdownMenu";
+import { getBeltBorderColor } from "@/lib/utils/beltColors";
+
+export default function Header({ userProfile }: { userProfile: StoredUser | null }) {
+  const { data: session } = useSession();
+  const pathname = usePathname();
+  const [showUserMenu, setShowUserMenu] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const beltColor = getBeltBorderColor(userProfile?.beltLevel)
+
+  const isActive = (path: string) => {
+    if (path === "/" && pathname === "/") return true;
+    if (path !== "/" && pathname.startsWith(path)) return true;
+    return false;
+  };
+
+  // Close menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setShowUserMenu(false);
+      }
+    };
+
+    if (showUserMenu) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [showUserMenu]);
+
+  return (
+    <header className="sticky top-0 z-50 w-full bg-background backdrop-blur-sm">
+      <div className="container mx-auto flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
+        <Link href="/" className="flex items-center gap-2.5 transition-opacity hover:opacity-80">
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-blue-600 to-blue-700">
+            <span className="text-lg">🥋</span>
+          </div>
+          <div className="flex flex-col">
+            <span className="text-base font-semibold text-secondary-foreground">BJJ Journal</span>
+            <span className="text-[10px] leading-none text-muted-foreground">Track Your Journey</span>
+          </div>
+        </Link>
+
+        <nav className="hidden items-center gap-8 md:flex">
+          <Link
+            href="/"
+            className={`text-sm font-medium transition-colors ${
+              isActive("/") ? "text-secondary-foreground" : "text-muted-foreground hover:text-secondary-foreground"
+            }`}
+          >
+            Dashboard
+          </Link>
+          <Link
+            href="/journal"
+            className={`text-sm font-medium transition-colors ${
+              isActive("/journal") ? "text-secondary-foreground" : "text-muted-foreground hover:text-secondary-foreground"
+            }`}
+          >
+            Journal
+          </Link>
+          <Link
+            href="/journal/new"
+            className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3.5 py-1.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+          >
+            <Plus className="h-3.5 w-3.5" />
+            New Entry
+          </Link>
+        </nav>
+
+        {session?.user && (
+          <div className="relative" ref={menuRef}>
+            <button
+              onClick={() => setShowUserMenu(!showUserMenu)}
+              className={"flex items-center gap-2.5 rounded-lg px-1.5 py-1 transition-colors hover:bg-accent focus:outline-none"}
+              style={{ "--tw-ring-color": beltColor } as React.CSSProperties}
+            >
+              <BeltAvatar
+                beltLevel={userProfile?.beltLevel}
+                name={session.user.name}
+                image={session.user.image}
+                size="md"
+              />
+              <span className="hidden text-sm font-medium text-muted-foreground sm:block">
+                {session.user.name ?? session.user.email}
+              </span>
+              <ChevronDown
+                className={`hidden h-4 w-4 text-muted-foreground transition-transform sm:block ${
+                  showUserMenu ? "rotate-180" : ""
+                }`}
+              />
+            </button>
+
+            {showUserMenu && userProfile && (
+              <DropdownMenu userProfile={userProfile} setShowUserMenu={setShowUserMenu} />
+            )}
+          </div>
+        )}
+      </div>
+    </header>
+  );
+}
